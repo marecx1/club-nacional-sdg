@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Club Nacional SDG - Portal de Administración y Finanzas</title>
+  
+  <!-- CSS Principal -->
+  <link rel="stylesheet" href="css/styles.css">
+  
+  <!-- Librerías Externas vía CDN -->
+  <!-- Iconos Lucide -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Generador de Gráficos Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Generador de Códigos QR -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <!-- Generador de PDF jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- Contenedor de Alertas Toast -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- PANTALLA DE ACCESO (LOGIN) -->
+  <div id="login-screen" class="login-screen">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo-container" style="display: inline-flex; align-items: center; justify-content: center; width: 80px; height: 80px; background: #fff; border-radius: 50%; overflow: hidden; margin-bottom: 15px; border: 2px solid var(--primary); box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);">
+          <img src="img/logo.jpg" alt="Logo" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+        <h1>Club Nacional SDG</h1>
+        <p>Saltos del Guairá • Fund. 02/02/1975</p>
+      </div>
+      
+      <form id="login-form" style="display: flex; flex-direction: column; gap: 18px;">
+        <div class="form-group">
+          <label for="login-username">Usuario</label>
+          <div class="input-wrapper">
+            <i data-lucide="user"></i>
+            <input type="text" id="login-username" placeholder="Ingresa tu usuario" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="login-password">Contraseña</label>
+          <div class="input-wrapper">
+            <i data-lucide="key-round"></i>
+            <input type="password" id="login-password" placeholder="••••••••" required>
+          </div>
+        </div>
+        
+        <button type="submit" class="btn-primary" style="margin-top: 10px;">
+          <i data-lucide="log-in"></i> Acceder al Portal
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- CONTENEDOR PRINCIPAL DE LA SPA -->
+  <div class="app-container">
+    
+    <!-- BARRA LATERAL (SIDEBAR) -->
+    <aside id="app-sidebar" class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon" style="background: #fff; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 1px solid var(--card-border);">
+          <img src="img/logo.jpg" alt="Logo" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+        <div class="brand-name">Club Nacional SDG</div>
+      </div>
+      
+      <!-- NIVEL DE ACCESO SIMULATOR (DE ACUERDO A CAPTURA) -->
+      <div id="sidebar-acceso-block" style="padding: 15px; margin: 10px 15px; background: rgba(0, 0, 0, 0.25); border-radius: 10px; border: 1px solid var(--card-border); display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Nivel de Acceso</span>
+        <div class="input-wrapper" style="width: 100%;">
+          <select id="sidebar-role-selector" style="width: 100%; padding: 8px 30px 8px 10px; background: var(--bg-primary); border: 1px solid var(--card-border); border-radius: 6px; color: var(--text-primary); cursor: pointer; font-size: 12px; font-weight: 600; appearance: none; background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 10px center; background-size: 12px;">
+            <option value="admin">Administrador • Pitta</option>
+            <option value="secretario">Secretario • Galeano</option>
+            <option value="tesorero">Tesorero • Auxiliadora</option>
+            <option value="consulta">Consulta • Martínez</option>
+          </select>
+        </div>
+        <div style="font-size: 11px; display: flex; flex-direction: column; gap: 4px; color: var(--text-secondary); border-top: 1px solid rgba(255,255,255,0.04); padding-top: 8px;">
+          <div>Usuario: <span id="acceso-display-user" style="font-weight: 600; color: var(--text-primary);">admin</span></div>
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <span>Permiso:</span>
+            <span id="acceso-display-permiso" style="padding: 2px 8px; font-size: 9px; font-weight: 700; background: rgba(239, 68, 68, 0.15); color: var(--danger); border-radius: 4px; text-transform: uppercase;">ADMINISTRADOR</span>
+          </div>
+        </div>
+      </div>
+      
+      <ul class="sidebar-menu">
+        <li id="menu-item-dashboard" class="menu-item active">
+          <a href="#" onclick="App.navigate('dashboard'); return false;">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li id="menu-item-socios" class="menu-item">
+          <a href="#" onclick="App.navigate('socios'); return false;">
+            <i data-lucide="users-2"></i>
+            <span>Socios & Carnet</span>
+          </a>
+        </li>
+        <li id="menu-item-ingresos" class="menu-item">
+          <a href="#" onclick="App.navigate('ingresos'); return false;">
+            <i data-lucide="trending-up"></i>
+            <span>Cuentas e Ingresos</span>
+          </a>
+        </li>
+        <li id="menu-item-egresos" class="menu-item">
+          <a href="#" onclick="App.navigate('egresos'); return false;">
+            <i data-lucide="trending-down"></i>
+            <span>Egresos</span>
+          </a>
+        </li>
+        <li id="menu-item-caja" class="menu-item">
+          <a href="#" onclick="App.navigate('caja'); return false;">
+            <i data-lucide="wallet"></i>
+            <span>Caja Diaria</span>
+          </a>
+        </li>
+        <li id="menu-item-reportes" class="menu-item">
+          <a href="#" onclick="App.navigate('reportes'); return false;">
+            <i data-lucide="bar-chart-3"></i>
+            <span>Reportes y Avisos</span>
+          </a>
+        </li>
+      </ul>
+      
+      <!-- PERFIL DE USUARIO EN EL SIDEBAR -->
+      <div class="sidebar-user">
+        <div class="user-avatar" id="user-avatar-text">AD</div>
+        <div class="user-info">
+          <span class="user-name" id="user-display-name">Administrador</span>
+          <span class="user-role" id="user-display-role">Cargando...</span>
+        </div>
+        <button class="btn-logout" onclick="App.logout()" title="Cerrar Sesión">
+          <i data-lucide="log-out"></i>
+        </button>
+      </div>
+    </aside>
+    
+    <!-- ÁREA DE CONTENIDO DE LA SPA -->
+    <main id="app-main-content" class="main-content">
+      
+      <!-- CABECERA SUPERIOR (TOPBAR) -->
+      <header class="topbar">
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <button class="btn-icon sidebar-toggle-btn" onclick="App.toggleSidebar()">
+            <i data-lucide="menu"></i>
+          </button>
+          <div class="topbar-title">
+            <h2>Club Nacional SDG</h2>
+            <p>Portal de Gestión Integral Deportiva</p>
+          </div>
+        </div>
+        
+        <div class="topbar-actions">
+          <!-- Caja Status Badge -->
+          <div id="topbar-caja-badge" class="caja-status-badge cerrada">
+            <span class="indicator"></span>Cargando Caja...
+          </div>
+          
+          <!-- Notificaciones Bell -->
+          <div class="notif-wrapper">
+            <button id="notif-bell-btn" class="btn-icon notif-bell" onclick="NotificationService.togglePanel()" title="Notificaciones">
+              <i data-lucide="bell"></i>
+              <span id="notif-badge" class="notif-badge" style="display:none;">0</span>
+            </button>
+            
+            <!-- Panel de Notificaciones Desplegable -->
+            <div id="notif-panel" class="notif-panel">
+              <div class="notif-panel-header">
+                <h3><i data-lucide="bell-ring" style="width:16px;height:16px;"></i> Notificaciones</h3>
+                <div class="notif-panel-actions">
+                  <button onclick="NotificationService.markAllAsRead()" class="notif-action-btn" title="Marcar todas como leídas">
+                    <i data-lucide="check-check" style="width:14px;height:14px;"></i>
+                  </button>
+                  <button onclick="NotificationService.clearAll()" class="notif-action-btn" title="Limpiar historial">
+                    <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+                  </button>
+                </div>
+              </div>
+              <div id="notif-list" class="notif-list">
+                <div class="notif-empty">
+                  <i data-lucide="bell-off" style="width:40px;height:40px;color:var(--text-muted);"></i>
+                  <p>Sin notificaciones</p>
+                  <span>Las alertas del sistema aparecerán aquí</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Tema Toggle -->
+          <button id="theme-toggle" class="btn-icon" title="Cambiar Tema">
+            <i data-lucide="sun"></i>
+          </button>
+        </div>
+      </header>
+      
+      <!-- SECCIONES DINÁMICAS (SPA VIEWS) -->
+      
+      <!-- 1. VISTA: DASHBOARD -->
+      <section id="view-dashboard" class="spa-view">
+        <!-- KPI Cards Grid -->
+        <div class="kpi-grid">
+          <div class="kpi-card blue">
+            <div class="kpi-header">
+              <span class="kpi-title">Total Socios</span>
+              <div class="kpi-icon"><i data-lucide="users"></i></div>
+            </div>
+            <div class="kpi-value" id="kpi-total-socios">0</div>
+            <div class="kpi-footer">
+              <span class="kpi-trend positive"><i data-lucide="trending-up"></i> Activos e inactivos</span>
+            </div>
+          </div>
+          
+          <div class="kpi-card green">
+            <div class="kpi-header">
+              <span class="kpi-title">Socios Activos</span>
+              <div class="kpi-icon"><i data-lucide="check-circle-2"></i></div>
+            </div>
+            <div class="kpi-value" id="kpi-socios-activos">0</div>
+            <div class="kpi-footer">
+              <span class="kpi-trend positive"><i data-lucide="check"></i> Con cuotas al día</span>
+            </div>
+          </div>
+          
+          <div class="kpi-card warning">
+            <div class="kpi-header">
+              <span class="kpi-title">Socios Morosos</span>
+              <div class="kpi-icon"><i data-lucide="alert-triangle"></i></div>
+            </div>
+            <div class="kpi-value" id="kpi-socios-morosos">0</div>
+            <div class="kpi-footer">
+              <span class="kpi-trend negative" style="color:var(--warning);"><i data-lucide="alert-circle"></i> Requiere seguimiento</span>
+            </div>
+          </div>
+          
+          <div class="kpi-card green">
+            <div class="kpi-header">
+              <span class="kpi-title">Ingresos del Mes</span>
+              <div class="kpi-icon"><i data-lucide="arrow-up-right"></i></div>
+            </div>
+            <div class="kpi-value" id="kpi-ingresos-mes">Gs. 0</div>
+            <div class="kpi-footer">
+              <span class="kpi-trend positive"><i data-lucide="calendar"></i> Mes en curso</span>
+            </div>
+          </div>
+          
+          <div class="kpi-card danger">
+            <div class="kpi-header">
+              <span class="kpi-title">Egresos del Mes</span>
+              <div class="kpi-icon"><i data-lucide="arrow-down-left"></i></div>
+            </div>
+            <div class="kpi-value" id="kpi-egresos-mes">Gs. 0</div>
+            <div class="kpi-footer">
+              <span class="kpi-trend negative"><i data-lucide="dollar-sign"></i> Gastos operativos</span>
+            </div>
+          </div>
+
+          <div class="kpi-card blue">
+            <div class="kpi-header">
+              <span class="kpi-title">Saldo Disponible</span>
+              <div class="kpi-icon"><i data-lucide="banknote"></i></div>
+            </div>
+            <div class="kpi-value" id="kpi-saldo-total">Gs. 0</div>
+            <div class="kpi-footer">
+              <span>Balance total histórico</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Dashboard Row (Gráficos + Actividad) -->
+        <div class="dashboard-row">
+          <!-- Gráficos -->
+          <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="chart-card">
+              <div class="chart-header">
+                <span class="chart-title">Comparativa: Ingresos vs Egresos (Mes de Mayo)</span>
+              </div>
+              <div class="chart-container">
+                <canvas id="chart-finanzas"></canvas>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Actividades Recientes y Socios -->
+          <div style="display:flex; flex-direction:column; gap:20px;">
+            <div class="chart-card" style="height: 100%;">
+              <div class="chart-header">
+                <span class="chart-title">Distribución por Categorías</span>
+              </div>
+              <div class="chart-container" style="height: 170px;">
+                <canvas id="chart-socios"></canvas>
+              </div>
+            </div>
+            
+            <div class="recent-activity-card">
+              <div class="chart-header">
+                <span class="chart-title">Actividad Reciente en Caja</span>
+              </div>
+              <div class="activity-list" id="dashboard-activity-list">
+                <!-- Se inyecta dinámicamente -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <!-- 2. VISTA: SOCIOS -->
+      <section id="view-socios" class="spa-view hidden">
+        <div class="view-header-actions">
+          <div class="search-filters-bar">
+            <div class="search-box">
+              <i data-lucide="search"></i>
+              <input type="text" id="socio-search" placeholder="Buscar por nombre, CI o número de socio...">
+            </div>
+            
+            <select id="socio-filter-categoria" class="filter-select" onchange="UI.renderSocios()">
+              <option value="todos">Todas las Categorías</option>
+              <option value="Titular">Titular</option>
+              <option value="Familiar">Familiar</option>
+              <option value="Juvenil">Juvenil</option>
+              <option value="Vitalicio">Vitalicio</option>
+            </select>
+            
+            <select id="socio-filter-estado" class="filter-select" onchange="UI.renderSocios()">
+              <option value="todos">Todos los Estados</option>
+              <option value="Activo">Activo</option>
+              <option value="Moroso">Moroso</option>
+              <option value="Suspendido">Suspendido</option>
+            </select>
+          </div>
+          
+          <button id="btn-open-add-socio" class="btn-add" onclick="App.openAddSocioModal()">
+            <i data-lucide="user-plus"></i> Registrar Socio
+          </button>
+        </div>
+        
+        <!-- Cards Grid de Socios (De acuerdo a captura) -->
+        <div id="socios-cards-grid" class="socios-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; width: 100%;">
+          <!-- Se inyecta dinámicamente -->
+        </div>
+      </section>
+      
+      <!-- 3. VISTA: INGRESOS -->
+      <section id="view-ingresos" class="spa-view hidden">
+        <div class="view-header-actions">
+          <h3 style="font-family:var(--font-title); font-size:22px; font-weight:700;">Historial de Cobros e Ingresos</h3>
+          
+          <button id="btn-open-add-ingreso" class="btn-add" onclick="App.openAddIngresoModal()">
+            <i data-lucide="plus-circle"></i> Registrar Cobro
+          </button>
+        </div>
+
+        <!-- Filtros de Fecha para Ingresos -->
+        <div class="filters-bar" style="display: flex; gap: 15px; align-items: center; margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--card-border); flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="calendar" style="color: var(--success); width: 16px; height: 16px;"></i>
+            <span style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Filtrar por Fecha:</span>
+          </div>
+          <select id="filtro-ingreso-mes" class="select-premium" onchange="UI.renderIngresos()" style="width: 150px; background: var(--bg-card); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 6px; padding: 6px 10px; font-size: 13px; outline: none; cursor: pointer;">
+            <option value="todos" selected>Todos los Meses</option>
+            <option value="0">Enero</option>
+            <option value="1">Febrero</option>
+            <option value="2">Marzo</option>
+            <option value="3">Abril</option>
+            <option value="4">Mayo</option>
+            <option value="5">Junio</option>
+            <option value="6">Julio</option>
+            <option value="7">Agosto</option>
+            <option value="8">Septiembre</option>
+            <option value="9">Octubre</option>
+            <option value="10">Noviembre</option>
+            <option value="11">Diciembre</option>
+          </select>
+          <select id="filtro-ingreso-anio" class="select-premium" onchange="UI.renderIngresos()" style="width: 120px; background: var(--bg-card); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 6px; padding: 6px 10px; font-size: 13px; outline: none; cursor: pointer;">
+            <option value="todos" selected>Todos los Años</option>
+            <option value="2024">2024</option>
+            <option value="2025">2025</option>
+            <option value="2026">2026</option>
+            <option value="2027">2027</option>
+          </select>
+          <button id="btn-print-ingresos" class="btn-secondary" onclick="App.printIngresosReport()" style="display:flex; align-items:center; gap:6px; padding:6px 12px; font-size:13px; border-radius:6px; border: 1px solid var(--card-border); background: var(--bg-card); color: var(--text-primary); cursor:pointer; margin-left:auto; transition: all 0.2s ease;">
+            <i data-lucide="printer" style="color:var(--success); width: 14px; height: 14px;"></i> Imprimir libro de ingresos
+          </button>
+          <button class="btn-secondary" onclick="ReceiptManager.generateLibroPDF(document.getElementById('filtro-ingreso-mes').value, document.getElementById('filtro-ingreso-anio').value)" style="display:flex; align-items:center; gap:6px; padding:6px 12px; font-size:13px; border-radius:6px; border: 1px solid var(--card-border); background: var(--bg-card); color: var(--text-primary); cursor:pointer; transition: all 0.2s ease;">
+            <i data-lucide="printer" style="color:var(--warning); width: 14px; height: 14px;"></i> Imprimir Libro PDF
+          </button>
+        </div>
+        
+        <div class="table-wrapper">
+          <table class="premium-table">
+            <thead>
+              <tr>
+                <th>Fecha y Hora</th>
+                <th>Socio / Pagador</th>
+                <th>Concepto de Cobro</th>
+                <th>Categoría</th>
+                <th>Monto</th>
+                <th>Método de Pago</th>
+                <th id="ingresos-th-acciones">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="ingresos-table-body">
+              <!-- Se inyecta dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+      
+      <!-- 4. VISTA: EGRESOS -->
+      <section id="view-egresos" class="spa-view hidden">
+        <div class="view-header-actions">
+          <h3 style="font-family:var(--font-title); font-size:22px; font-weight:700;">Historial de Gastos y Egresos</h3>
+          
+          <button id="btn-open-add-egreso" class="btn-add" style="background: linear-gradient(135deg, var(--danger), var(--danger-hover)); box-shadow: 0 4px 12px var(--danger-glow);" onclick="App.openAddEgresoModal()">
+            <i data-lucide="minus-circle"></i> Registrar Gasto
+          </button>
+        </div>
+
+        <!-- Filtros de Fecha para Egresos -->
+        <div class="filters-bar" style="display: flex; gap: 15px; align-items: center; margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--card-border); flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="calendar" style="color: var(--danger); width: 16px; height: 16px;"></i>
+            <span style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Filtrar por Fecha:</span>
+          </div>
+          <select id="filtro-egreso-mes" class="select-premium" onchange="UI.renderEgresos()" style="width: 150px; background: var(--bg-card); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 6px; padding: 6px 10px; font-size: 13px; outline: none; cursor: pointer;">
+            <option value="todos" selected>Todos los Meses</option>
+            <option value="0">Enero</option>
+            <option value="1">Febrero</option>
+            <option value="2">Marzo</option>
+            <option value="3">Abril</option>
+            <option value="4">Mayo</option>
+            <option value="5">Junio</option>
+            <option value="6">Julio</option>
+            <option value="7">Agosto</option>
+            <option value="8">Septiembre</option>
+            <option value="9">Octubre</option>
+            <option value="10">Noviembre</option>
+            <option value="11">Diciembre</option>
+          </select>
+          <select id="filtro-egreso-anio" class="select-premium" onchange="UI.renderEgresos()" style="width: 120px; background: var(--bg-card); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 6px; padding: 6px 10px; font-size: 13px; outline: none; cursor: pointer;">
+            <option value="todos" selected>Todos los Años</option>
+            <option value="2024">2024</option>
+            <option value="2025">2025</option>
+            <option value="2026">2026</option>
+            <option value="2027">2027</option>
+          </select>
+          <button id="btn-print-egresos" class="btn-secondary" onclick="App.printEgresosReport()" style="display:flex; align-items:center; gap:6px; padding:6px 12px; font-size:13px; border-radius:6px; border: 1px solid var(--card-border); background: var(--bg-card); color: var(--text-primary); cursor:pointer; margin-left:auto; transition: all 0.2s ease;">
+            <i data-lucide="printer" style="color:var(--success); width: 14px; height: 14px;"></i> Imprimir libro de egresos
+          </button>
+          <button class="btn-secondary" onclick="ReceiptManager.generateLibroPDF(document.getElementById('filtro-egreso-mes').value, document.getElementById('filtro-egreso-anio').value)" style="display:flex; align-items:center; gap:6px; padding:6px 12px; font-size:13px; border-radius:6px; border: 1px solid var(--card-border); background: var(--bg-card); color: var(--text-primary); cursor:pointer; transition: all 0.2s ease;">
+            <i data-lucide="printer" style="color:var(--warning); width: 14px; height: 14px;"></i> Imprimir Libro PDF
+          </button>
+        </div>
+        
+        <div class="table-wrapper">
+          <table class="premium-table">
+            <thead>
+              <tr>
+                <th>Fecha y Hora</th>
+                <th>Concepto de Gasto</th>
+                <th>Categoría</th>
+                <th>Monto de Egreso</th>
+                <th>Comprobante</th>
+                <th id="egresos-th-acciones">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="egresos-table-body">
+              <!-- Se inyecta dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+      
+      <!-- 5. VISTA: CAJA DIARIA -->
+      <section id="view-caja" class="spa-view hidden">
+        <div class="view-header-actions">
+          <h3 style="font-family:var(--font-title); font-size:22px; font-weight:700;">Administración de Caja Diaria</h3>
+        </div>
+        
+        <div id="caja-view-container" style="display:flex; flex-direction:column; gap:30px;">
+          <!-- Se inyecta dinámicamente si está abierta o cerrada -->
+        </div>
+
+        <!-- Filtros de Fecha para Caja Diaria -->
+        <div class="filters-bar" style="display: flex; gap: 15px; align-items: center; margin-top: 25px; margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--card-border); flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="calendar" style="color: var(--primary); width: 16px; height: 16px;"></i>
+            <span style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Filtrar por Período:</span>
+          </div>
+          <select id="filtro-caja-mes" class="select-premium" onchange="UI.renderCaja()" style="width: 150px; background: var(--bg-card); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 6px; padding: 6px 10px; font-size: 13px; outline: none; cursor: pointer;">
+            <option value="todos">Todos los Meses</option>
+            <option value="0">Enero</option>
+            <option value="1">Febrero</option>
+            <option value="2">Marzo</option>
+            <option value="3">Abril</option>
+            <option value="4">Mayo</option>
+            <option value="5">Junio</option>
+            <option value="6">Julio</option>
+            <option value="7">Agosto</option>
+            <option value="8">Septiembre</option>
+            <option value="9">Octubre</option>
+            <option value="10">Noviembre</option>
+            <option value="11">Diciembre</option>
+          </select>
+          <select id="filtro-caja-anio" class="select-premium" onchange="UI.renderCaja()" style="width: 120px; background: var(--bg-card); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 6px; padding: 6px 10px; font-size: 13px; outline: none; cursor: pointer;">
+            <option value="todos">Todos los Años</option>
+            <option value="2024">2024</option>
+            <option value="2025">2025</option>
+            <option value="2026">2026</option>
+            <option value="2027">2027</option>
+          </select>
+          
+          <button id="btn-print-caja" class="btn-secondary" onclick="App.printCajaDiariaReport()" style="display:flex; align-items:center; gap:6px; padding:6px 12px; font-size:13px; border-radius:6px; border: 1px solid var(--card-border); background: var(--bg-card); color: var(--text-primary); cursor:pointer; margin-left:auto; transition: all 0.2s ease;">
+            <i data-lucide="printer" style="color:var(--success); width: 14px; height: 14px;"></i> Imprimir libro de caja
+          </button>
+        </div>
+
+        <!-- Panel de Resumen de Caja Diaria Filtrada (KPIs) -->
+        <div id="caja-resumen-periodo" class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px;">
+          <div class="kpi-card green" style="padding: 15px; min-height: auto;">
+            <div class="kpi-header" style="margin-bottom: 5px;">
+              <span class="kpi-title" style="font-size: 12px;">Total Ingresos</span>
+              <div class="kpi-icon" style="font-size: 16px;"><i data-lucide="trending-up" style="width:16px;height:16px;"></i></div>
+            </div>
+            <div class="kpi-value" id="caja-resumen-ingresos" style="font-size: 18px;">Gs. 0</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Período seleccionado</div>
+          </div>
+          
+          <div class="kpi-card danger" style="padding: 15px; min-height: auto;">
+            <div class="kpi-header" style="margin-bottom: 5px;">
+              <span class="kpi-title" style="font-size: 12px;">Total Egresos</span>
+              <div class="kpi-icon" style="font-size: 16px;"><i data-lucide="trending-down" style="width:16px;height:16px;"></i></div>
+            </div>
+            <div class="kpi-value" id="caja-resumen-egresos" style="font-size: 18px;">Gs. 0</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Período seleccionado</div>
+          </div>
+          
+          <div class="kpi-card blue" style="padding: 15px; min-height: auto;">
+            <div class="kpi-header" style="margin-bottom: 5px;">
+              <span class="kpi-title" style="font-size: 12px;">Saldo Final</span>
+              <div class="kpi-icon" style="font-size: 16px;"><i data-lucide="wallet" style="width:16px;height:16px;"></i></div>
+            </div>
+            <div class="kpi-value" id="caja-resumen-saldo" style="font-size: 18px;">Gs. 0</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Ingresos - Egresos</div>
+          </div>
+          
+          <div class="kpi-card warning" style="padding: 15px; min-height: auto;">
+            <div class="kpi-header" style="margin-bottom: 5px;">
+              <span class="kpi-title" style="font-size: 12px;">Movimientos</span>
+              <div class="kpi-icon" style="font-size: 16px;"><i data-lucide="activity" style="width:16px;height:16px;"></i></div>
+            </div>
+            <div class="kpi-value" id="caja-resumen-movimientos" style="font-size: 18px;">0</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Cantidad de transacciones</div>
+          </div>
+        </div>
+
+        <!-- Detalle de Movimientos del Período -->
+        <h4 style="font-family:var(--font-title); font-size:18px; font-weight:700; margin-top:20px;">Movimientos del Período Seleccionado</h4>
+        <div class="table-wrapper" style="margin-bottom: 30px;">
+          <table class="premium-table">
+            <thead>
+              <tr>
+                <th>Fecha y Hora</th>
+                <th>Tipo</th>
+                <th>Concepto / Detalle</th>
+                <th>Categoría / Socio</th>
+                <th>Comprobante / Método</th>
+                <th>Monto</th>
+                <th>Operador</th>
+              </tr>
+            </thead>
+            <tbody id="caja-movimientos-table-body">
+              <!-- Se inyecta dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Historial de Cierres -->
+        <h4 style="font-family:var(--font-title); font-size:18px; font-weight:700; margin-top:20px;">Historial de Caja Diaria y Arqueos Consolidados</h4>
+        <div class="table-wrapper">
+          <table class="premium-table">
+            <thead>
+              <tr>
+                <th>ID Cierre</th>
+                <th>Fecha Cierre</th>
+                <th>Monto Inicial</th>
+                <th>Total Ingresos</th>
+                <th>Total Egresos</th>
+                <th>Saldo de Cierre</th>
+                <th id="caja-th-acciones">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="caja-historial-body">
+              <!-- Se inyecta dinámicamente -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+      
+      <!-- 6. VISTA: REPORTES Y MOROSOS -->
+      <section id="view-reportes" class="spa-view hidden">
+        <div class="view-header-actions">
+          <h3 style="font-family:var(--font-title); font-size:22px; font-weight:700;">Centro de Reportes y Cobranza</h3>
+        </div>
+
+        <div class="dashboard-row">
+          <div class="chart-card">
+            <div class="chart-header">
+              <span class="chart-title">Exportar Datos y Resúmenes Financieros</span>
+            </div>
+            
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:15px; margin-top:15px;">
+              <button class="btn-secondary" onclick="ReceiptManager.exportLibroDiarioCSV()" style="display:flex; align-items:center; justify-content:center; gap:8px;">
+                <i data-lucide="file-spreadsheet" style="color:var(--success);"></i> Exportar Libro Diario (Excel)
+              </button>
+              <button class="btn-secondary" onclick="ReceiptManager.generateBalancePDF()" style="display:flex; align-items:center; justify-content:center; gap:8px;">
+                <i data-lucide="file-text" style="color:var(--primary);"></i> Balance General Anual (PDF)
+              </button>
+              <button class="btn-secondary" onclick="ReceiptManager.generateLibroPDF()" style="display:flex; align-items:center; justify-content:center; gap:8px;">
+                <i data-lucide="printer" style="color:var(--warning);"></i> Imprimir Libro Diario (PDF)
+              </button>
+            </div>
+            
+            <div style="margin-top:25px; border-top: 1px solid var(--card-border); padding-top:20px;">
+              <h4 style="font-family:var(--font-title); font-size:15px; font-weight:600; margin-bottom:10px;">Cuentas Bancarias del Club (Para transferencias)</h4>
+              <p style="font-size:13px; color:var(--text-secondary); line-height: 1.6;">
+                <strong>Banco Sudameris:</strong> Club Deportivo PY - Cuenta Corriente Nº 15-224455-01<br>
+                <strong>RUC:</strong> 80012345-6<br>
+                <strong>Email:</strong> administracion@clubmanagerpy.org.py
+              </p>
+            </div>
+          </div>
+
+          <!-- Alertas de Morosos -->
+          <div class="recent-activity-card">
+            <div class="chart-header">
+              <span class="chart-title" style="color:var(--warning);">Alertas de Cobranza (Socios Morosos)</span>
+            </div>
+            <div class="activity-list" id="reporte-morosos-list" style="max-height: 350px; overflow-y: auto;">
+              <!-- Se inyecta dinámicamente -->
+            </div>
+          </div>
+        </div>
+      </section>
+      
+    </main>
+  </div>
+
+  <!-- ==========================================================================
+       MODALES DIÁLOGOS (BACKDROPS)
+       ========================================================================== -->
+       
+  <!-- MODAL: REGISTRAR/EDITAR SOCIO -->
+  <div id="modal-socio-backdrop" class="modal-backdrop">
+    <div class="premium-modal">
+      <div class="modal-header">
+        <h3 id="modal-socio-title">Registrar Nuevo Socio</h3>
+        <button class="modal-close" onclick="UI.closeModal('modal-socio-backdrop')"><i data-lucide="x"></i></button>
+      </div>
+      
+      <form id="form-socio">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group form-grid-full">
+              <label for="socio-nombre">Nombre Completo del Socio</label>
+              <div class="input-wrapper">
+                <i data-lucide="user"></i>
+                <input type="text" id="socio-nombre" placeholder="Nombre Apellido" required>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="socio-ci">Documento de Identidad (C.I.)</label>
+              <div class="input-wrapper">
+                <i data-lucide="credit-card"></i>
+                <input type="text" id="socio-ci" placeholder="e.g. 4.123.456" required>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="socio-telefono">Número de Celular</label>
+              <div class="input-wrapper">
+                <i data-lucide="phone"></i>
+                <input type="text" id="socio-telefono" placeholder="0981 111 222" required>
+              </div>
+            </div>
+            
+            <div class="form-group form-grid-full">
+              <label for="socio-email">Correo Electrónico</label>
+              <div class="input-wrapper">
+                <i data-lucide="mail"></i>
+                <input type="email" id="socio-email" placeholder="correo@ejemplo.com" required>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="socio-categoria">Categoría</label>
+              <div class="input-wrapper">
+                <i data-lucide="tags"></i>
+                <select id="socio-categoria" required style="padding-left: 45px;">
+                  <option value="Titular">Titular</option>
+                  <option value="Familiar">Familiar</option>
+                  <option value="Juvenil">Juvenil</option>
+                  <option value="Vitalicio">Vitalicio</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="socio-estado">Estado Inicial</label>
+              <div class="input-wrapper">
+                <i data-lucide="toggle-left"></i>
+                <select id="socio-estado" required style="padding-left: 45px;">
+                  <option value="Activo">Activo</option>
+                  <option value="Moroso">Moroso</option>
+                  <option value="Suspendido">Suspendido</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group form-grid-full" style="display: flex; flex-direction: column; gap: 8px;">
+              <label>Foto de Perfil del Socio (Subir de galería o archivos)</label>
+              <div style="display: flex; align-items: center; gap: 15px;">
+                <!-- Caja de Vista Previa Circular -->
+                <div style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; background: var(--bg-primary); border: 2px dashed var(--card-border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: var(--shadow-sm);">
+                  <img id="socio-foto-preview" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=80" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <!-- Input de Archivo Personalizado -->
+                <div class="input-wrapper" style="flex-grow: 1;">
+                  <i data-lucide="upload" style="left: 15px;"></i>
+                  <input type="file" id="socio-foto-file" accept="image/*" style="padding-left: 45px; cursor: pointer; border-style: dashed; padding-top: 10px;">
+                  <input type="hidden" id="socio-foto">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group form-grid-full">
+              <label for="socio-vencimiento">Próximo Vencimiento de Cuota</label>
+              <div class="input-wrapper">
+                <i data-lucide="calendar"></i>
+                <input type="date" id="socio-vencimiento" required>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="UI.closeModal('modal-socio-backdrop')">Cancelar</button>
+          <button type="submit" class="btn-primary"><i data-lucide="save"></i> Guardar Ficha</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR INGRESO -->
+  <div id="modal-ingreso-backdrop" class="modal-backdrop">
+    <div class="premium-modal">
+      <div class="modal-header">
+        <h3>Registrar Ingreso de Caja</h3>
+        <button class="modal-close" onclick="UI.closeModal('modal-ingreso-backdrop')"><i data-lucide="x"></i></button>
+      </div>
+      
+      <form id="form-ingreso">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group form-grid-full">
+              <label for="ingreso-tipo-pagador">Tipo de Pagador</label>
+              <div class="input-wrapper">
+                <i data-lucide="user-check"></i>
+                <select id="ingreso-tipo-pagador" onchange="App.handleTipoPagadorChange()" required style="padding-left: 45px;">
+                  <option value="socio">Socio del Club</option>
+                  <option value="cliente">Cliente Comercial / Externo</option>
+                  <option value="ocasional">Cliente Ocasional / General</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Contenedor Socio -->
+            <div id="wrapper-ingreso-socio" class="form-group form-grid-full">
+              <label for="ingreso-socio-id">Seleccionar Socio</label>
+              <div class="input-wrapper">
+                <i data-lucide="users"></i>
+                <select id="ingreso-socio-id" style="padding-left: 45px;">
+                  <!-- Se inyecta dinámicamente -->
+                </select>
+              </div>
+            </div>
+
+            <!-- Contenedor Cliente -->
+            <div id="wrapper-ingreso-cliente" class="form-group form-grid-full" style="display: none;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                <label for="ingreso-cliente-id" style="margin-bottom: 0;">Seleccionar Cliente Comercial</label>
+                <button type="button" onclick="UI.openModal('modal-nuevo-cliente-backdrop')" style="background: none; border: none; color: var(--primary); font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 0;">
+                  <i data-lucide="plus-circle" style="width: 14px; height: 14px;"></i> Registrar Cliente
+                </button>
+              </div>
+              <div class="input-wrapper">
+                <i data-lucide="briefcase"></i>
+                <select id="ingreso-cliente-id" style="padding-left: 45px;">
+                  <!-- Se inyecta dinámicamente -->
+                </select>
+              </div>
+            </div>
+
+            <!-- Contenedor Nombre Manual -->
+            <div id="wrapper-ingreso-nombre-manual" class="form-group form-grid-full" style="display: none;">
+              <label for="ingreso-nombre-manual">Nombre Completo del Pagador</label>
+              <div class="input-wrapper">
+                <i data-lucide="user"></i>
+                <input type="text" id="ingreso-nombre-manual" placeholder="e.g. Distribuidora del Este o Juan Pérez">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="ingreso-ruc">R.U.C. / C.I. del Pagador</label>
+              <div class="input-wrapper">
+                <i data-lucide="file-text"></i>
+                <input type="text" id="ingreso-ruc" placeholder="e.g. 80012345-6 o C.I." required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="ingreso-categoria">Categoría de Ingreso</label>
+              <div class="input-wrapper">
+                <i data-lucide="tags"></i>
+                <select id="ingreso-categoria" required style="padding-left: 45px;">
+                  <option value="cuotas">Cuotas Sociales</option>
+                  <option value="alquiler_comercial">Alquiler de Local Comercial</option>
+                  <option value="electricidad">Reembolso de Electricidad / Servicios</option>
+                  <option value="alquiler_canchas">Alquiler de Canchas / Deportes</option>
+                  <option value="cantina">Consumos de Cantina</option>
+                  <option value="otros">Otros Ingresos</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group form-grid-full">
+              <label for="ingreso-concepto">Concepto del Cobro / Depósito</label>
+              <div class="input-wrapper">
+                <i data-lucide="bookmark"></i>
+                <input type="text" id="ingreso-concepto" placeholder="e.g. Alquiler Comercial Salón 2, Reembolso ANDE, Cuota" required>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="ingreso-monto">Monto del Ingreso (Gs.)</label>
+              <div class="input-wrapper">
+                <i data-lucide="banknote"></i>
+                <input type="number" id="ingreso-monto" placeholder="e.g. 150000" required>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="ingreso-metodo">Método de Pago</label>
+              <div class="input-wrapper">
+                <i data-lucide="credit-card"></i>
+                <select id="ingreso-metodo" required style="padding-left: 45px;">
+                  <option value="Transferencia">Transferencia Bancaria</option>
+                  <option value="QR">Código QR Bancario</option>
+                  <option value="Efectivo">Efectivo</option>
+                  <option value="Giro">Giros Celulares</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="UI.closeModal('modal-ingreso-backdrop')">Cancelar</button>
+          <button type="submit" class="btn-success"><i data-lucide="check"></i> Confirmar y Descargar Recibo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR EGRESO -->
+  <div id="modal-egreso-backdrop" class="modal-backdrop">
+    <div class="premium-modal">
+      <div class="modal-header">
+        <h3>Registrar Egreso (Gasto de Caja)</h3>
+        <button class="modal-close" onclick="UI.closeModal('modal-egreso-backdrop')"><i data-lucide="x"></i></button>
+      </div>
+      
+      <form id="form-egreso">
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group form-grid-full">
+              <label for="egreso-concepto">Detalle / Concepto del Gasto</label>
+              <div class="input-wrapper">
+                <i data-lucide="bookmark"></i>
+                <input type="text" id="egreso-concepto" placeholder="e.g. Pago de ANDE, Compra de pelotas, Arbitraje" required>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="egreso-categoria">Categoría</label>
+              <div class="input-wrapper">
+                <i data-lucide="tags"></i>
+                <select id="egreso-categoria" required style="padding-left: 45px;">
+                  <option value="mantenimiento">Mantenimiento de Canchas</option>
+                  <option value="arbitraje">Arbitraje y Ligas</option>
+                  <option value="salarios">Salarios y Personal</option>
+                  <option value="electricidad">Servicios ANDE</option>
+                  <option value="agua">Servicios ESSAP</option>
+                  <option value="compras">Compras Varias</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label for="egreso-monto">Monto del Gasto (Gs.)</label>
+              <div class="input-wrapper">
+                <i data-lucide="banknote"></i>
+                <input type="number" id="egreso-monto" placeholder="e.g. 350000" required>
+              </div>
+            </div>
+
+            <div class="form-group form-grid-full">
+              <label for="egreso-comprobante">Nombre de Comprobante / Factura (Adjunto)</label>
+              <div class="input-wrapper">
+                <i data-lucide="file-check"></i>
+                <input type="file" id="egreso-comprobante" style="padding-top:10px;">
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="UI.closeModal('modal-egreso-backdrop')">Cancelar</button>
+          <button type="submit" class="btn-primary" style="background:linear-gradient(135deg, var(--danger), var(--danger-hover));"><i data-lucide="minus"></i> Registrar Gasto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ABRIR CAJA -->
+  <div id="modal-abrir-caja-backdrop" class="modal-backdrop">
+    <div class="premium-modal" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3>Apertura de Caja Diaria</h3>
+        <button class="modal-close" onclick="UI.closeModal('modal-abrir-caja-backdrop')"><i data-lucide="x"></i></button>
+      </div>
+      
+      <form id="form-abrir-caja">
+        <div class="modal-body">
+          <p style="font-size:13px; color:var(--text-secondary); margin-bottom:20px;">
+            Ingresa el monto de dinero físico en efectivo disponible en la caja física al arrancar el turno de hoy.
+          </p>
+          <div class="form-group">
+            <label for="abrir-caja-monto">Monto Inicial en Efectivo (Gs.)</label>
+            <div class="input-wrapper">
+              <i data-lucide="banknote"></i>
+              <input type="number" id="abrir-caja-monto" value="500000" required>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="UI.closeModal('modal-abrir-caja-backdrop')">Cancelar</button>
+          <button type="submit" class="btn-success"><i data-lucide="unlock"></i> Abrir Caja</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CARNET DIGITAL PREMIUM (CON QR) -->
+  <div id="modal-carnet-backdrop" class="modal-backdrop">
+    <div class="premium-modal" style="max-width: 380px; background: transparent; border: none; box-shadow: none;">
+      
+      <div class="carnet-modal-body">
+        
+        <!-- Tarjeta del Carnet -->
+        <div id="carnet-digital-card" class="carnet-digital">
+          <div class="carnet-watermark">NACIONAL</div>
+          
+          <div class="carnet-header">
+            <div class="carnet-logo">CLUB NACIONAL SDG</div>
+            <div class="carnet-sub">Socio Oficial • Saltos del Guairá</div>
+          </div>
+          
+          <!-- Foto de Perfil en Carnet -->
+          <div class="carnet-avatar-frame">
+            <img id="carnet-display-avatar" class="carnet-avatar" src="" alt="Socio">
+          </div>
+          
+          <!-- Info Socio -->
+          <div class="carnet-info">
+            <h3 id="carnet-display-name" class="carnet-name">Juan Pérez Galeano</h3>
+            <span id="carnet-display-number" class="carnet-number">CMP-1002</span>
+            
+            <div class="carnet-badges">
+              <span id="carnet-display-cat" class="carnet-badge cat">VITALICIO</span>
+              <span id="carnet-display-status" class="carnet-badge status activo">ACTIVO</span>
+            </div>
+          </div>
+          
+          <!-- Código QR dinámico autogenerado por QRCode.js -->
+          <div id="carnet-qr" class="carnet-qr-container"></div>
+          
+          <div class="carnet-footer-text">Validación Electrónica Segura</div>
+        </div>
+        
+        <!-- Botón para Cerrar -->
+        <button class="btn-secondary" style="border-radius:20px; width: 100px; padding: 10px;" onclick="UI.closeModal('modal-carnet-backdrop')">
+          Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR NUEVO CLIENTE COMERCIAL -->
+  <div id="modal-nuevo-cliente-backdrop" class="modal-backdrop" style="z-index: 2000;">
+    <div class="premium-modal" style="max-width: 400px; margin-top: 80px;">
+      <div class="modal-header">
+        <h3>Registrar Cliente Comercial</h3>
+        <button type="button" class="modal-close" onclick="UI.closeModal('modal-nuevo-cliente-backdrop')"><i data-lucide="x"></i></button>
+      </div>
+      <form id="form-nuevo-cliente">
+        <div class="modal-body">
+          <div style="display:flex; flex-direction:column; gap:15px;">
+            <div class="form-group">
+              <label for="nuevo-cliente-nombre">Razón Social / Nombre</label>
+              <div class="input-wrapper">
+                <i data-lucide="briefcase"></i>
+                <input type="text" id="nuevo-cliente-nombre" placeholder="e.g. Distribuidora El Sol" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="nuevo-cliente-ruc">R.U.C. / C.I.</label>
+              <div class="input-wrapper">
+                <i data-lucide="file-text"></i>
+                <input type="text" id="nuevo-cliente-ruc" placeholder="e.g. 80011122-3" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="nuevo-cliente-telefono">Celular / Teléfono</label>
+              <div class="input-wrapper">
+                <i data-lucide="phone"></i>
+                <input type="text" id="nuevo-cliente-telefono" placeholder="0981 111 222">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="UI.closeModal('modal-nuevo-cliente-backdrop')">Cancelar</button>
+          <button type="submit" class="btn-primary"><i data-lucide="check"></i> Guardar Cliente</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EDITAR ARQUEO / CIERRE DE CAJA -->
+  <div id="modal-editar-cierre-backdrop" class="modal-backdrop">
+    <div class="premium-modal" style="max-width: 420px; margin-top: 80px;">
+      <div class="modal-header">
+        <h3>Ajustar Arqueo de Caja</h3>
+        <button type="button" class="modal-close" onclick="UI.closeModal('modal-editar-cierre-backdrop')"><i data-lucide="x"></i></button>
+      </div>
+      
+      <form id="form-editar-cierre">
+        <div class="modal-body">
+          <div style="display:flex; flex-direction:column; gap:16px;">
+            <p style="font-size:12px; color:var(--text-secondary); line-height:1.5;">
+              Modifica los montos del arqueo consolidado. El saldo final de cierre se recalculará automáticamente.
+            </p>
+            
+            <input type="hidden" id="editar-cierre-id">
+
+            <div class="form-group">
+              <label for="editar-cierre-monto-inicial">Monto Inicial de Apertura (Gs.)</label>
+              <div class="input-wrapper">
+                <i data-lucide="unlock"></i>
+                <input type="number" id="editar-cierre-monto-inicial" required style="padding-left: 45px;">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="editar-cierre-ingresos">Total Ingresos Registrados (Gs.)</label>
+              <div class="input-wrapper">
+                <i data-lucide="trending-up" style="color:var(--success);"></i>
+                <input type="number" id="editar-cierre-ingresos" required style="padding-left: 45px;">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="editar-cierre-egresos">Total Egresos Registrados (Gs.)</label>
+              <div class="input-wrapper">
+                <i data-lucide="trending-down" style="color:var(--danger);"></i>
+                <input type="number" id="editar-cierre-egresos" required style="padding-left: 45px;">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="editar-cierre-monto-final">Saldo Final de Cierre (Gs. - Recalculado)</label>
+              <div class="input-wrapper">
+                <i data-lucide="wallet" style="color:var(--primary);"></i>
+                <input type="number" id="editar-cierre-monto-final" readonly style="background:var(--bg-primary); opacity:0.8; font-weight:700; color:var(--primary); padding-left: 45px;">
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="UI.closeModal('modal-editar-cierre-backdrop')">Cancelar</button>
+          <button type="submit" class="btn-success" style="background:linear-gradient(135deg, var(--success), var(--success-hover));"><i data-lucide="save"></i> Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ARCHIVOS JAVASCRIPT DE LA APP (Importados en orden jerárquico) -->
+  <script src="js/database.js"></script>
+  <script src="js/receipt.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
