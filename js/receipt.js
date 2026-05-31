@@ -70,12 +70,12 @@ const ReceiptManager = {
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
-    doc.text("CLUB NACIONAL SDG", 44, 14);
+    doc.text("CLUB NACIONAL ODS", 44, 14);
     
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.5);
     doc.text("BALANCE GENERAL Y ESTADO DE CUENTAS INSTITUCIONALES", 44, 20);
-    doc.text("Asunción, Paraguay • Gestión Deportiva y Social", 44, 25);
+    doc.text("Lambaré, Paraguay • Gestión Deportiva y Social", 44, 25);
 
     // 2. Pie de página en cada página
     doc.setDrawColor(226, 232, 240);
@@ -85,7 +85,7 @@ const ReceiptManager = {
     doc.setTextColor(100, 116, 139);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
-    doc.text("Club Nacional SDG - Sistema de Gestión Club Manager Pro PY", 15, 284);
+    doc.text("CLUB NACIONAL ODS - Sistema de Gestión Club Manager Pro PY", 15, 284);
     doc.text(`Página ${pageNumber} de ${totalPages}`, 180, 284);
   },
 
@@ -109,7 +109,8 @@ const ReceiptManager = {
     });
 
     const formatCurrency = (val) => {
-      return new Intl.NumberFormat("es-PY", { style: "currency", currency: "PYG" }).format(val);
+      const formatted = new Intl.NumberFormat("es-PY", { minimumFractionDigits: 0 }).format(val);
+      return `₲ ${formatted}`;
     };
 
     let socioNombre = "Cliente Ocasional / General";
@@ -146,12 +147,12 @@ const ReceiptManager = {
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(20);
-    doc.text("CLUB NACIONAL SDG", 44, 16);
+    doc.text("CLUB NACIONAL ODS", 44, 16);
     
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.text("ADMINISTRACIÓN Y CONTABILIDAD DEPORTIVA", 44, 22);
-    doc.text("Asunción, Paraguay", 44, 27);
+    doc.text("Lambaré, Paraguay", 44, 27);
     
     // Cuadro del Recibo Nº
     doc.setFillColor(255, 255, 255);
@@ -240,7 +241,7 @@ const ReceiptManager = {
     doc.setTextColor(100, 116, 139);
     doc.setFont("helvetica", "italic");
     doc.setFontSize(8.5);
-    doc.text("Este comprobante constituye un recibo oficial de cobro emitido por la administración digital de Club Nacional SDG.", 15, 160);
+    doc.text("Este comprobante constituye un recibo oficial de cobro emitido por la administración digital de CLUB NACIONAL ODS.", 15, 160);
     doc.text("Gracias por su aporte y su puntualidad en las cuotas sociales, haciendo crecer nuestro club.", 15, 164);
 
     // 7. Firmas y Sello de Validación
@@ -255,9 +256,9 @@ const ReceiptManager = {
     doc.text("CAJA VALIDADA", 32, 182);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
-    doc.text("Club Nacional SDG", 29, 187);
+    doc.text("CLUB NACIONAL ODS", 29, 187);
     doc.setFontSize(7);
-    doc.text(`REF: CNSDG-SEC-${ingreso.id}`, 34, 192);
+    doc.text(`REF: CNODS-SEC-${ingreso.id}`, 34, 192);
 
     // Firma del Cajero
     doc.setDrawColor(148, 163, 184);
@@ -271,7 +272,7 @@ const ReceiptManager = {
 
     // Guardar / Descargar PDF con fallback robusto
     try {
-      doc.save(`Recibo_CNSDG_${String(ingreso.id).padStart(6, '0')}.pdf`);
+      doc.save(`Recibo_CNODS_${String(ingreso.id).padStart(6, '0')}.pdf`);
     } catch (saveError) {
       console.warn("doc.save() bloqueado o falló, intentando abrir en nueva pestaña:", saveError);
       try {
@@ -306,7 +307,8 @@ const ReceiptManager = {
     });
 
     const formatCurrency = (val) => {
-      return new Intl.NumberFormat("es-PY", { style: "currency", currency: "PYG" }).format(val);
+      const formatted = new Intl.NumberFormat("es-PY", { minimumFractionDigits: 0 }).format(val);
+      return `₲ ${formatted}`;
     };
 
     const logoImg = await this.loadLogo();
@@ -658,10 +660,10 @@ const ReceiptManager = {
 
         const rucVal = i.ruc || "N/A";
         const catLabels = {
-          cuotas: "Cuota Social",
-          alquiler_comercial: "Alquiler Comercial",
-          electricidad: "Reembolso Elec.",
-          alquiler_canchas: "Canchas / Deportes",
+          cuotas: "93190 - Cuota Social",
+          alquiler_comercial: "68100 - Alquiler Comercial",
+          electricidad: "35101 - Reembolso ANDE",
+          alquiler_canchas: "93190 - Canchas / Deportes",
           cantina: "Cantina / Consumos",
           otros: "Otros Ingresos"
         };

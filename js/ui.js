@@ -13,11 +13,10 @@ const UI = {
    * Formatear número a moneda paraguaya (Gs.)
    */
   formatCurrency(value) {
-    return new Intl.NumberFormat("es-PY", {
-      style: "currency",
-      currency: "PYG",
+    const formatted = new Intl.NumberFormat("es-PY", {
       minimumFractionDigits: 0
     }).format(value);
+    return `₲ ${formatted}`;
   },
 
   /**
@@ -469,7 +468,9 @@ const UI = {
    */
   renderIngresos() {
     const ingresos = DB.get("ingresos", []);
+    const egresos = DB.get("egresos", []);
     const socios = DB.get("socios", []);
+    const clientes = DB.get("clientes", []);
     const tableBody = document.getElementById("ingresos-table-body");
 
     if (!tableBody) return;
@@ -486,117 +487,168 @@ const UI = {
     // Cargar select de clientes comerciales en el formulario de ingresos
     const selectCliente = document.getElementById("ingreso-cliente-id");
     if (selectCliente) {
-      const clientes = DB.get("clientes", []);
+      const clientesData = DB.get("clientes", []);
       selectCliente.innerHTML = `
         <option value="">-- Seleccionar Cliente Comercial --</option>
-        ${clientes.map(c => `<option value="${c.id}">${c.nombre} (${c.ruc})</option>`).join("")}
+        ${clientesData.map(c => `<option value="${c.id}">${c.nombre} (${c.ruc})</option>`).join("")}
       `;
     }
 
-    // Filtros de fecha (Mes y Año)
-    const mesFiltroSelect = document.getElementById("filtro-ingreso-mes");
-    const anioFiltroSelect = document.getElementById("filtro-ingreso-anio");
+    // --- CALCULAR Y RENDERIZAR NUEVAS KPIS CONTABLES SUPERIORES ---
+    const globalIngresado = ingresos.reduce((sum, i) => sum + i.monto, 0);
+    const globalEgresado = egresos.reduce((sum, e) => sum + e.monto, 0);
+    const globalSaldo = globalIngresado - globalEgresado;
     
-    const mesFiltro = mesFiltroSelect ? mesFiltroSelect.value : "todos";
-    const anioFiltro = anioFiltroSelect ? anioFiltroSelect.value : "todos";
-
-    let filteredIngresos = [...ingresos];
-
-    if (mesFiltro !== "todos") {
-      filteredIngresos = filteredIngresos.filter(i => new Date(i.fecha).getMonth() === parseInt(mesFiltro));
+    const elTransIngresos = document.getElementById("trans-kpi-ingresos");
+    const elTransEgresos = document.getElementById("trans-kpi-egresos");
+    const elTransSaldo = document.getElementById("trans-kpi-saldo");
+    
+    if (elTransIngresos) elTransIngresos.innerText = this.formatCurrency(globalIngresado);
+    if (elTransEgresos) elTransEgresos.innerText = this.formatCurrency(globalEgresado);
+    if (elTransSaldo) {
+      elTransSaldo.innerText = this.formatCurrency(globalSaldo);
+      if (globalSaldo >= 0) {
+        elTransSaldo.style.color = "var(--success)";
+      } else {
+        elTransSaldo.style.color = "var(--danger)";
+      }
     }
-    if (anioFiltro !== "todos") {
-      filteredIngresos = filteredIngresos.filter(i => new Date(i.fecha).getFullYear() === parseInt(anioFiltro));
+
+    // --- MAPEAR Y UNIFICAR MOVIMIENTOS (LIBRO DIARIO DE TRANSACCIONES) ---
+    const mappedIngresos = ingresos.map(i => {
+      let pagadorName = "Cliente General";
+      if (i.tipoPagador === "socio" || (i.socioId && !i.tipoPagador)) {
+        const socio = socios.find(s => s.id === parseInt(i.socioId));
+        pagadorName = socio ? socio.nombre : "Socio no Encontrado";
+      } else if (i.tipoPagador === "cliente" || i.clienteId) {
+        const cliente = clientes.find(c => c.id === parseInt(i.clienteId));
+        pagadorName = cliente ? cliente.nombre : "Cliente Comercial";
+      } else if (i.tipoPagador === "ocasional" || i.nombreManual) {
+        pagadorName = i.nombreManual || "Cliente General";
+      }
+
+      return {
+        id: i.id,
+        fecha: i.fecha,
+        tipo: "INGRESO",
+        concepto: i.concepto,
+        pagador: pagadorName,
+        categoria: i.categoria || "cuotas",
+        metodoPago: i.metodoPago,
+        monto: i.monto,
+        usuario: i.usuario
+      };
+    });
+
+    const mappedEgresos = egresos.map(e => {
+      return {
+        id: e.id,
+        fecha: e.fecha,
+        tipo: "EGRESO",
+        concepto: e.concepto,
+        pagador: "Gasto de Caja",
+        categoria: e.categoria || "otros",
+        metodoPago: "Efectivo",
+        monto: e.monto,
+        usuario: e.usuario
+      };
+    });
+
+    let unified = [...mappedIngresos, ...mappedEgresos];
+    unified.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+    // Filtrar por Pestaña Activa (Todos, Ingresos, Salidas)
+    const activeTab = App.transaccionesTab || "Todos";
+    if (activeTab === "Ingresos") {
+      unified = unified.filter(m => m.tipo === "INGRESO");
+    } else if (activeTab === "Salidas") {
+      unified = unified.filter(m => m.tipo === "EGRESO");
     }
 
-    if (filteredIngresos.length === 0) {
+    // Filtrar por Buscador Predictivo
+    const searchVal = document.getElementById("trans-search")?.value.toLowerCase() || "";
+    if (searchVal) {
+      unified = unified.filter(m => 
+        m.concepto.toLowerCase().includes(searchVal) || 
+        m.pagador.toLowerCase().includes(searchVal) || 
+        `REC-${String(m.id).padStart(6, '0')}`.toLowerCase().includes(searchVal) ||
+        `EXP-${String(m.id).padStart(6, '0')}`.toLowerCase().includes(searchVal)
+      );
+    }
+
+    // Filtrar por Categoría
+    const filterCat = document.getElementById("trans-filter-categoria")?.value || "todos";
+    if (filterCat !== "todos") {
+      unified = unified.filter(m => m.categoria === filterCat);
+    }
+
+    // Filtrar por Método de Pago
+    const filterMet = document.getElementById("trans-filter-metodo")?.value || "todos";
+    if (filterMet !== "todos") {
+      unified = unified.filter(m => m.metodoPago === filterMet);
+    }
+
+    if (unified.length === 0) {
       tableBody.innerHTML = `
         <tr>
-          <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 45px 0;">
-            <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; justify-content: center;">
-              <i data-lucide="calendar-x" style="width: 36px; height: 36px; stroke-width: 1.5; opacity: 0.5; color: var(--warning);"></i>
-              <div>
-                <p style="font-weight: 700; margin-bottom: 2px; color: var(--text-primary); font-size: 14px;">No se encontraron movimientos</p>
-                <p style="font-size: 12.5px; color: var(--text-muted);">No hay transacciones de ingresos en el período seleccionado.</p>
-              </div>
-              <button class="btn-secondary" onclick="UI.resetFiltrosIngresos()" style="padding: 5px 12px; font-size: 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 5px; margin-top: 5px; cursor: pointer; border-color: rgba(255,255,255,0.08); background: rgba(255,255,255,0.02);">
-                <i data-lucide="refresh-cw" style="width: 12px; height: 12px;"></i> Restablecer Filtros
-              </button>
-            </div>
+          <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 45px 0;">
+            No se encontraron transacciones en el Libro Diario.
           </td>
         </tr>
       `;
-      lucide.createIcons();
       return;
     }
 
-    // Ordenar de más nuevo a más viejo
-    filteredIngresos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-
-    // Determinar nivel de acceso actual
-    const rol = App.currentUser ? App.currentUser.rol : "Consulta";
-    const hasFinancialAccess = ["Administrador", "Tesorero"].includes(rol);
-
     const catLabels = {
-      cuotas: "Cuota Social",
-      alquiler_comercial: "Alquiler Comercial",
-      electricidad: "Reembolso Electricidad",
-      alquiler_canchas: "Canchas / Deportes",
-      cantina: "Cantina / Consumos",
-      otros: "Otros Ingresos"
+      cuotas: "Cuotas",
+      alquiler_canchas: "Alquiler",
+      cantina: "Cantina",
+      eventos: "Eventos/Torneos",
+      rifas: "Rifas",
+      mantenimiento: "Mantenimiento",
+      arbitraje: "Arbitraje",
+      salarios: "Salarios",
+      luz: "ANDE - Luz",
+      agua: "ESSAP - Agua",
+      compras: "Insumos",
+      otros: "Otros"
     };
 
-    tableBody.innerHTML = filteredIngresos
-      .map(i => {
-        let socioNom = "Cliente General";
-        if (i.tipoPagador === "socio" || (i.socioId && !i.tipoPagador)) {
-          const socio = socios.find(s => s.id === parseInt(i.socioId));
-          socioNom = socio ? socio.nombre : "Socio no Encontrado";
-        } else if (i.tipoPagador === "cliente" || i.clienteId) {
-          const clientes = DB.get("clientes", []);
-          const cliente = clientes.find(c => c.id === parseInt(i.clienteId));
-          socioNom = cliente ? cliente.nombre : "Cliente Comercial";
-        } else if (i.tipoPagador === "ocasional" || i.nombreManual) {
-          socioNom = i.nombreManual || "Cliente General";
-        }
+    tableBody.innerHTML = unified.map(m => {
+      const isIngreso = m.tipo === "INGRESO";
+      const refCode = isIngreso ? `REC-${String(m.id).padStart(6, '0')}` : `EXP-${String(m.id).padStart(6, '0')}`;
+      
+      const tipoBadge = isIngreso ? 
+        `<span class="carnet-badge status activo" style="font-weight: 700; font-size: 10px; padding: 2px 8px;">INGRESO</span>` : 
+        `<span class="carnet-badge status suspendido" style="font-weight: 700; font-size: 10px; padding: 2px 8px; background: rgba(239, 68, 68, 0.15); color: var(--danger);">SALIDA</span>`;
+      
+      const catBadge = `<span class="carnet-badge cat" style="background: rgba(255,255,255,0.04); font-size: 11px;">${catLabels[m.categoria] || m.categoria}</span>`;
+      
+      const importeStr = isIngreso ? 
+        `<strong style="color: var(--success);">+ ${this.formatCurrency(m.monto)}</strong>` : 
+        `<strong style="color: var(--danger);">- ${this.formatCurrency(m.monto)}</strong>`;
+      
+      const dateStr = new Date(m.fecha).toLocaleDateString("es-PY");
+      
+      const actionButton = `
+        <button class="btn-action" onclick="App.showReceiptPreview(${m.id}, '${m.tipo}')" style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; font-size: 11px; font-weight: 600; border-radius: 6px; border: 1px solid var(--card-border); color: var(--text-primary); cursor: pointer; transition: all 0.2s ease; background: var(--bg-primary);">
+          <i data-lucide="file-text" style="width: 13px; height: 13px;"></i> Recibo
+        </button>
+      `;
 
-        const rucVal = i.ruc || (i.tipoPagador === "socio" && socio ? socio.ci : "N/A");
-        
-        // Acciones condicionales según el rol
-        const actionButtons = hasFinancialAccess ? `
-          <div style="display: flex; gap: 5px;">
-            <button class="btn-action" onclick="App.downloadReceipt(${i.id})" title="Descargar Recibo PDF" style="color: var(--success); border-color: rgba(16, 185, 129, 0.15);">
-              <i data-lucide="download"></i>
-            </button>
-            <button class="btn-action" onclick="App.openEditIngresoModal(${i.id})" title="Editar Ingreso" style="color: var(--primary); border-color: rgba(59, 130, 246, 0.15);">
-              <i data-lucide="edit-3"></i>
-            </button>
-            <button class="btn-action" onclick="App.deleteIngreso(${i.id})" title="Eliminar Ingreso" style="color: var(--danger); border-color: rgba(239, 68, 68, 0.15);">
-              <i data-lucide="trash-2"></i>
-            </button>
-          </div>
-        ` : `
-          <button class="btn-action" onclick="App.downloadReceipt(${i.id})" title="Descargar Recibo PDF" style="color: var(--success); border-color: rgba(16, 185, 129, 0.15);">
-            <i data-lucide="download"></i>
-          </button>
-        `;
-
-        return `
-          <tr>
-            <td>${new Date(i.fecha).toLocaleString("es-PY")}</td>
-            <td>
-              <strong>${socioNom}</strong>
-              ${rucVal !== "N/A" ? `<br><span style="font-size:11px; color:var(--text-muted); font-weight:normal;">R.U.C./C.I.: ${rucVal}</span>` : ''}
-            </td>
-            <td>${i.concepto}</td>
-            <td><span class="carnet-badge cat" style="background: rgba(255,255,255,0.04); font-size: 11px;">${catLabels[i.categoria] || i.categoria || 'Otros'}</span></td>
-            <td><strong style="color: var(--success);">${this.formatCurrency(i.monto)}</strong></td>
-            <td><span class="carnet-badge cat" style="background: rgba(255,255,255,0.04);">${i.metodoPago}</span></td>
-            <td>${actionButtons}</td>
-          </tr>
-        `;
-      })
-      .join("");
+      return `
+        <tr>
+          <td><strong style="font-family: monospace; font-size: 12.5px; color: var(--text-secondary);">${refCode}</strong></td>
+          <td>${tipoBadge}</td>
+          <td>${catBadge}</td>
+          <td>${dateStr}</td>
+          <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${m.concepto}"><strong>${m.concepto}</strong></td>
+          <td><span class="carnet-badge cat" style="background: rgba(255,255,255,0.04);">${m.metodoPago}</span></td>
+          <td>${importeStr}</td>
+          <td>${actionButton}</td>
+        </tr>
+      `;
+    }).join("");
 
     lucide.createIcons();
   },
@@ -895,12 +947,18 @@ const UI = {
         }
         
         const catLabels = {
-          cuotas: "Cuota Social",
-          alquiler_comercial: "Alquiler Comercial",
-          electricidad: "Reembolso Electricidad",
-          alquiler_canchas: "Canchas / Deportes",
-          cantina: "Cantina / Consumos",
-          otros: "Otros Ingresos"
+          cuotas: "Cuotas",
+          alquiler_canchas: "Alquiler Canchas",
+          cantina: "Cantina",
+          eventos: "Eventos/Torneos",
+          rifas: "Rifas",
+          mantenimiento: "Mantenimiento",
+          arbitraje: "Arbitraje",
+          salarios: "Salarios",
+          luz: "ANDE - Luz",
+          agua: "ESSAP - Agua",
+          compras: "Compras",
+          otros: "Otros"
         };
 
         return {
@@ -1034,7 +1092,60 @@ const UI = {
       })
       .join("");
 
+    // Renderizar auditoría contable de movimientos
+    this.renderAuditoria();
+
     lucide.createIcons();
+  },
+
+  /**
+   * Renderizar el Historial de Auditoría de Acciones y Seguridad
+   */
+  renderAuditoria() {
+    const tableBody = document.getElementById("auditoria-table-body");
+    if (!tableBody) return;
+
+    const logs = DB.get("auditoria", []);
+
+    if (logs.length === 0) {
+      tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color: var(--text-muted); padding: 20px 0;">No hay registros de auditoría contable aún.</td></tr>`;
+      return;
+    }
+
+    tableBody.innerHTML = logs.map(l => {
+      let badgeColor = "rgba(148, 163, 184, 0.15)";
+      let badgeTextColor = "var(--text-secondary)";
+      
+      if (l.rol === "Administrador") {
+        badgeColor = "rgba(239, 68, 68, 0.15)";
+        badgeTextColor = "var(--danger)";
+      } else if (l.rol === "Tesorero") {
+        badgeColor = "rgba(245, 158, 11, 0.15)";
+        badgeTextColor = "var(--warning)";
+      } else if (l.rol === "Secretario") {
+        badgeColor = "rgba(16, 185, 129, 0.15)";
+        badgeTextColor = "var(--success)";
+      }
+
+      let actionStyle = "font-weight: 700; font-size: 11px;";
+      if (l.accion.includes("ELIMINAR") || l.accion.includes("CERRAR")) {
+        actionStyle += "color: var(--danger);";
+      } else if (l.accion.includes("CREAR") || l.accion.includes("ABRIR")) {
+        actionStyle += "color: var(--success);";
+      } else if (l.accion.includes("MODIFICAR") || l.accion.includes("AJUSTAR") || l.accion.includes("EDITAR")) {
+        actionStyle += "color: var(--primary);";
+      }
+
+      return `
+        <tr>
+          <td><span style="font-size:11px;">${new Date(l.fecha).toLocaleString("es-PY")}</span></td>
+          <td><strong>${l.usuario}</strong></td>
+          <td><span class="carnet-badge status" style="background: ${badgeColor}; color: ${badgeTextColor}; border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: 700; text-transform: uppercase;">${l.rol}</span></td>
+          <td><span style="${actionStyle}">${l.accion}</span></td>
+          <td style="font-size: 11.5px; color: var(--text-secondary); max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${l.detalle}">${l.detalle}</td>
+        </tr>
+      `;
+    }).join("");
   },
 
   resetFiltrosIngresos() {

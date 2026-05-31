@@ -10,6 +10,7 @@ const App = {
   editingIngresoId: null,
   editingEgresoId: null,
   editingCierreId: null,
+  transaccionesTab: "Todos",
 
   /**
    * Inicialización de la Aplicación al cargar
@@ -428,6 +429,29 @@ const App = {
           }
 
           UI.showToast(`Simulación activada: Ahora eres ${found.rol}`, "success");
+    // Formulario de Recuperación de Contraseña
+    const recuperarForm = document.getElementById("form-recuperar-clave");
+    if (recuperarForm) {
+      recuperarForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = document.getElementById("recuperar-email").value;
+        if (supabase) {
+          try {
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+              redirectTo: window.location.origin
+            });
+            if (error) throw error;
+            UI.closeModal("modal-recuperar-clave-backdrop");
+            UI.showToast("Enlace de recuperación enviado. Revisa tu correo.", "success");
+            DB.logAuditoria("RECUPERAR_CONTRASEÑA", `Enlace de restablecimiento enviado a ${email}`);
+          } catch (err) {
+            UI.showToast("Error: " + err.message, "danger");
+          }
+        } else {
+          // Simulación Offline
+          UI.closeModal("modal-recuperar-clave-backdrop");
+          UI.showToast(`Simulación: Enlace de recuperación enviado a ${email}.`, "success");
+          DB.logAuditoria("RECUPERAR_CONTRASEÑA", `Simulación de restablecimiento para ${email}`);
         }
       });
     }
@@ -436,7 +460,55 @@ const App = {
   /**
    * Lógica de Autenticación
    */
-  login(username, password) {
+  async login(username, password) {
+    if (supabase) {
+      try {
+        const email = username.includes("@") ? username : (username.toLowerCase() === "admin" ? "jonasmareco28@gmail.com" : (username.toLowerCase() + "@clubnacional.org.py"));
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email,
+          password: password
+        });
+        
+        if (error) throw error;
+        
+        // Cargar perfil y rol de la base de datos de Supabase
+        const { data: dbUser, error: errU } = await supabase
+          .from("usuarios")
+          .select("*")
+          .eq("email", email)
+          .single();
+          
+        let found = null;
+        if (!errU && dbUser) {
+          found = {
+            usuario: dbUser.usuario,
+            nombre: dbUser.nombre,
+            rol: dbUser.rol,
+            email: dbUser.email
+          };
+        } else {
+          const usuarios = DB.get("usuarios", []);
+          const matched = usuarios.find(u => u.usuario.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === email.toLowerCase());
+          found = matched ? { usuario: matched.usuario, nombre: matched.nombre, rol: matched.rol, email: matched.email } : { usuario: username, nombre: username, rol: "Consulta", email: email };
+        }
+        
+        this.currentUser = found;
+        sessionStorage.setItem("club_manager_user", JSON.stringify(found));
+        this.launchApp();
+        
+        // Sincronizar todos los datos contables desde la nube al acceder
+        DB.syncFromSupabase();
+        DB.logAuditoria("INICIAR_SESIÓN", "Inicio de sesión seguro mediante Supabase Auth exitoso.");
+      } catch (err) {
+        console.warn("Fallo de acceso a Supabase, intentando inicio de sesión local:", err.message);
+        this.loginOffline(username, password);
+      }
+    } else {
+      this.loginOffline(username, password);
+    }
+  },
+
+  loginOffline(username, password) {
     const usuarios = DB.get("usuarios", []);
     const found = usuarios.find(u => u.usuario.toLowerCase() === username.toLowerCase() && u.clave === password);
 
@@ -444,6 +516,7 @@ const App = {
       this.currentUser = found;
       sessionStorage.setItem("club_manager_user", JSON.stringify(found));
       this.launchApp();
+      DB.logAuditoria("INICIAR_SESIÓN", "Inicio de sesión local (Simulador offline) exitoso.");
     } else {
       alert("Error: Usuario o contraseña incorrectos para Club Nacional SDG.");
       UI.showToast("Acceso denegado: Credenciales inválidas.", "danger");
@@ -480,8 +553,9 @@ const App = {
     caja.transacciones = [];
 
     DB.save("caja", caja);
+    DB.logAuditoria("ABRIR_CAJA", `Caja diaria abierta exitosamente con saldo ₲ ${monto.toLocaleString()}`);
     UI.closeModal("modal-abrir-caja-backdrop");
-    UI.showToast(`Caja diaria abierta exitosamente con saldo Gs. ${monto.toLocaleString()}`, "success");
+    UI.showToast(`Caja diaria abierta exitosamente con saldo ₲ ${monto.toLocaleString()}`, "success");
     
     // Notificar apertura de caja
     if (typeof NotificationService !== "undefined") {
@@ -536,7 +610,8 @@ const App = {
     caja.transacciones = [];
 
     DB.save("caja", caja);
-    UI.showToast(`Cierre de caja #${nuevoCierre.id} realizado. Saldo consolidado: Gs. ${montoFinal.toLocaleString()}`, "success");
+    DB.logAuditoria("CERRAR_CAJA", `Cierre de caja #${nuevoCierre.id} realizado. Saldo consolidado: ₲ ${montoFinal.toLocaleString()}`);
+    UI.showToast(`Cierre de caja #${nuevoCierre.id} realizado. Saldo consolidado: ₲ ${montoFinal.toLocaleString()}`, "success");
     
     // Notificar cierre de caja
     if (typeof NotificationService !== "undefined") {
@@ -613,6 +688,7 @@ const App = {
           nombre, ci, telefono, email, categoria, estado, foto, fechaVencimiento
         };
         DB.save("socios", socios);
+        DB.logAuditoria("MODIFICAR_SOCIO", `Ficha de socio ${nombre} (CI: ${ci}) modificada en categoría ${categoria}.`);
 
         // Detectar cambio a Moroso y notificar
         if (estado === "Moroso" && estadoAnterior !== "Moroso" && typeof NotificationService !== "undefined") {
@@ -643,6 +719,7 @@ const App = {
 
       socios.push(nuevoSocio);
       DB.save("socios", socios);
+      DB.logAuditoria("CREAR_SOCIO", `Socio ${nombre} registrado con Nro Ficha: ${nroSocio} y CI: ${ci}.`);
 
       // Notificar si se registra directamente como Moroso
       if (estado === "Moroso" && typeof NotificationService !== "undefined") {
@@ -665,8 +742,10 @@ const App = {
     const index = socios.findIndex(s => s.id === socioId);
     
     if (index !== -1) {
+      const nombre = socios[index].nombre;
       socios[index].estado = "Suspendido";
       DB.save("socios", socios);
+      DB.logAuditoria("ELIMINAR_SOCIO", `Ficha de socio ${nombre} (ID: ${socioId}) suspendida temporalmente.`);
       UI.showToast("Estado del socio modificado a Suspendido.", "warning");
       this.renderViewData("socios");
     }
@@ -736,8 +815,12 @@ const App = {
     if (!confirm("¿Está seguro de que desea eliminar este registro de ingreso?")) return;
     
     let ingresos = DB.get("ingresos", []);
+    const matching = ingresos.find(i => i.id === ingresoId);
+    const details = matching ? `Monto: ₲ ${matching.monto.toLocaleString()} - Concepto: ${matching.concepto}` : `ID: ${ingresoId}`;
+    
     ingresos = ingresos.filter(i => i.id !== ingresoId);
     DB.save("ingresos", ingresos);
+    DB.logAuditoria("ELIMINAR_INGRESO", `Cobro de caja eliminado permanentemente. (${details})`);
     
     UI.showToast("Ingreso eliminado correctamente.", "warning");
     this.renderViewData("ingresos");
@@ -793,6 +876,7 @@ const App = {
 
     clientes.push(nuevoCliente);
     DB.save("clientes", clientes);
+    DB.logAuditoria("CREAR_CLIENTE", `Cliente comercial ${nombre} (RUC: ${ruc}) registrado.`);
 
     // Cerrar mini-modal
     UI.closeModal("modal-nuevo-cliente-backdrop");
@@ -856,6 +940,7 @@ const App = {
         ingresos[idx].metodoPago = metodoPago;
         targetIngreso = ingresos[idx];
         DB.save("ingresos", ingresos);
+        DB.logAuditoria("MODIFICAR_INGRESO", `Cobro ID: ${this.editingIngresoId} modificado. Nuevo Monto: ₲ ${monto.toLocaleString()} - Concepto: ${concepto}`);
       }
       this.editingIngresoId = null;
       UI.closeModal("modal-ingreso-backdrop");
@@ -879,18 +964,21 @@ const App = {
       targetIngreso = nuevoIngreso;
       ingresos.push(nuevoIngreso);
       DB.save("ingresos", ingresos);
+      DB.logAuditoria("CREAR_INGRESO", `Nuevo cobro registrado. Monto: ₲ ${monto.toLocaleString()} - Concepto: ${concepto} - Categoría: ${categoria}`);
 
       // Actualizar el estado de morosidad si pagó su cuota
       if (tipoPagador === "socio" && socioId && concepto.toLowerCase().includes("cuota")) {
         const socios = DB.get("socios", []);
         const socioIdx = socios.findIndex(s => s.id === parseInt(socioId));
         if (socioIdx !== -1) {
+          const socioNombre = socios[socioIdx].nombre;
           socios[socioIdx].estado = "Activo";
           // Extender fecha de vencimiento a un mes después
           const vDate = new Date();
           vDate.setMonth(vDate.getMonth() + 1);
           socios[socioIdx].fechaVencimiento = vDate.toISOString().split('T')[0];
           DB.save("socios", socios);
+          DB.logAuditoria("MODIFICAR_SOCIO", `Socio ${socioNombre} restablecido a estado ACTIVO por pago de cuota.`);
         }
       }
 
@@ -943,8 +1031,12 @@ const App = {
     if (!confirm("¿Está seguro de que desea eliminar este registro de egreso?")) return;
     
     let egresos = DB.get("egresos", []);
+    const matching = egresos.find(e => e.id === egresoId);
+    const details = matching ? `Monto: ₲ ${matching.monto.toLocaleString()} - Concepto: ${matching.concepto}` : `ID: ${egresoId}`;
+
     egresos = egresos.filter(e => e.id !== egresoId);
     DB.save("egresos", egresos);
+    DB.logAuditoria("ELIMINAR_EGRESO", `Egreso de caja eliminado permanentemente. (${details})`);
     
     UI.showToast("Egreso eliminado correctamente.", "warning");
     this.renderViewData("egresos");
@@ -979,6 +1071,7 @@ const App = {
           egresos[idx].comprobante = comprobanteName.split('\\').pop() || "Factura_Digital.pdf";
         }
         DB.save("egresos", egresos);
+        DB.logAuditoria("MODIFICAR_EGRESO", `Egreso ID: ${this.editingEgresoId} modificado. Nuevo Monto: ₲ ${monto.toLocaleString()} - Concepto: ${concepto}`);
       }
       this.editingEgresoId = null;
       UI.closeModal("modal-egreso-backdrop");
@@ -996,6 +1089,7 @@ const App = {
       };
       egresos.push(nuevoEgreso);
       DB.save("egresos", egresos);
+      DB.logAuditoria("CREAR_EGRESO", `Nuevo egreso registrado. Monto: ₲ ${monto.toLocaleString()} - Concepto: ${concepto} - Categoría: ${categoria}`);
 
       UI.closeModal("modal-egreso-backdrop");
       UI.showToast("Egreso registrado correctamente de la caja.", "success");
@@ -1013,6 +1107,109 @@ const App = {
 
     const socio = socios.find(s => s.id === ingreso.socioId);
     ReceiptManager.generatePDF(ingreso, socio);
+  },
+
+  setTransaccionesTab(tabName) {
+    this.transaccionesTab = tabName;
+    
+    // Cambiar clases active y estilos de botones
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.classList.remove("active");
+      btn.style.background = "transparent";
+      btn.style.color = "var(--text-secondary)";
+    });
+    
+    const activeBtn = document.getElementById(`tab-transacciones-${tabName.toLowerCase()}`);
+    if (activeBtn) {
+      activeBtn.classList.add("active");
+      activeBtn.style.background = "rgba(59, 130, 246, 0.15)";
+      activeBtn.style.color = "var(--primary)";
+    }
+    
+    // Volver a renderizar la tabla
+    UI.renderIngresos();
+  },
+
+  showReceiptPreview(id, tipo) {
+    const isIngreso = tipo === "INGRESO";
+    const record = isIngreso ? 
+      DB.get("ingresos", []).find(i => i.id === id) : 
+      DB.get("egresos", []).find(e => e.id === id);
+
+    if (!record) return;
+
+    // Actualizar campos del modal
+    const refCode = isIngreso ? `REC-${String(record.id).padStart(6, '0')}` : `EXP-${String(record.id).padStart(6, '0')}`;
+    document.getElementById("recibo-vista-nro").innerText = refCode;
+    
+    const dateStr = new Date(record.fecha).toLocaleDateString("es-PY");
+    document.getElementById("recibo-vista-fecha").innerText = dateStr;
+    
+    // Operador y método
+    const users = DB.get("usuarios", []);
+    const matchingUser = users.find(u => u.usuario === record.usuario);
+    const userDisplay = matchingUser ? matchingUser.nombre : record.usuario;
+    document.getElementById("recibo-vista-operador").innerText = userDisplay;
+    document.getElementById("recibo-vista-metodo").innerText = isIngreso ? record.metodoPago : "Efectivo";
+
+    // Concepto
+    let pagadorName = "";
+    if (isIngreso) {
+      if (record.tipoPagador === "socio" || (record.socioId && !record.tipoPagador)) {
+        const socios = DB.get("socios", []);
+        const socio = socios.find(s => s.id === parseInt(record.socioId));
+        pagadorName = socio ? ` - ${socio.nombre}` : "";
+      } else if (record.tipoPagador === "cliente" || record.clienteId) {
+        const clientes = DB.get("clientes", []);
+        const cliente = clientes.find(c => c.id === parseInt(record.clienteId));
+        pagadorName = cliente ? ` - ${cliente.nombre}` : "";
+      } else if (record.tipoPagador === "ocasional" || record.nombreManual) {
+        pagadorName = ` - ${record.nombreManual || "Cliente General"}`;
+      }
+    }
+    
+    const fullConcept = isIngreso ? `${record.concepto}${pagadorName}` : record.concepto;
+    document.getElementById("recibo-vista-concepto").innerText = fullConcept;
+
+    // Clase/Categoría
+    const catLabels = {
+      cuotas: "CUOTAS",
+      alquiler_canchas: "ALQUILER",
+      cantina: "CANTINA",
+      eventos: "EVENTOS",
+      rifas: "RIFAS",
+      mantenimiento: "MANTENIMIENTO",
+      arbitraje: "ARBITRAJE",
+      salarios: "SALARIOS",
+      luz: "LUZ",
+      agua: "AGUA",
+      compras: "COMPRAS",
+      otros: "OTROS"
+    };
+    document.getElementById("recibo-vista-clase").innerText = catLabels[record.categoria] || record.categoria.toUpperCase();
+
+    // Monto
+    document.getElementById("recibo-vista-monto").innerText = `₲ ${new Intl.NumberFormat("es-PY").format(record.monto)}`;
+
+    // Botón de descargar PDF
+    const downloadBtn = document.getElementById("btn-descargar-recibo-pdf");
+    if (downloadBtn) {
+      const newBtn = downloadBtn.cloneNode(true);
+      downloadBtn.parentNode.replaceChild(newBtn, downloadBtn);
+      
+      newBtn.addEventListener("click", () => {
+        if (isIngreso) {
+          const socios = DB.get("socios", []);
+          const socio = socios.find(s => s.id === parseInt(record.socioId));
+          ReceiptManager.generatePDF(record, socio);
+        } else {
+          ReceiptManager.generatePDF(record);
+        }
+      });
+    }
+
+    UI.openModal("modal-recibo-vista-backdrop");
+    lucide.createIcons();
   },
 
   openEditCierreModal(cierreId) {
@@ -1038,10 +1235,15 @@ const App = {
 
     const caja = DB.get("caja", {});
     let historial = caja.historial || [];
+    const matching = historial.find(h => h.id === cierreId);
+    const details = matching ? `Cierre ID: ${cierreId} - Monto Final ₲ ${matching.montoFinal.toLocaleString()}` : `Cierre ID: ${cierreId}`;
+
     historial = historial.filter(h => h.id !== cierreId);
     caja.historial = historial;
     
     DB.save("caja", caja);
+    DB.logAuditoria("ELIMINAR_CIERRE", `Registro de cierre de caja eliminado del historial. (${details})`);
+    
     UI.showToast("Cierre de caja eliminado correctamente.", "warning");
     
     this.renderViewData(this.currentView);
@@ -1066,6 +1268,7 @@ const App = {
       
       caja.historial = historial;
       DB.save("caja", caja);
+      DB.logAuditoria("MODIFICAR_CIERRE", `Arqueo contable de Cierre #${closureId} ajustado. Nuevo Saldo Final ₲ ${montoFinal.toLocaleString()}`);
       
       UI.closeModal("modal-editar-cierre-backdrop");
       UI.showToast("Cierre de caja actualizado con éxito.", "success");
@@ -1111,10 +1314,10 @@ const App = {
       }
 
       const catLabels = {
-        cuotas: "Cuota Social",
-        alquiler_comercial: "Alquiler Comercial",
-        electricidad: "Reembolso Electricidad",
-        alquiler_canchas: "Canchas / Deportes",
+        cuotas: "93190 - Cuota Social",
+        alquiler_comercial: "68100 - Alquiler Comercial",
+        electricidad: "35101 - Reembolso ANDE",
+        alquiler_canchas: "93190 - Canchas / Deportes",
         cantina: "Cantina / Consumos",
         otros: "Otros Ingresos"
       };
@@ -1208,10 +1411,10 @@ const App = {
       }
       
       const catLabels = {
-        cuotas: "Cuota Social",
-        alquiler_comercial: "Alquiler Comercial",
-        electricidad: "Reembolso Electricidad",
-        alquiler_canchas: "Canchas / Deportes",
+        cuotas: "93190 - Cuota Social",
+        alquiler_comercial: "68100 - Alquiler Comercial",
+        electricidad: "35101 - Reembolso ANDE",
+        alquiler_canchas: "93190 - Canchas / Deportes",
         cantina: "Cantina / Consumos",
         otros: "Otros Ingresos"
       };
@@ -1244,6 +1447,47 @@ const App = {
     movimientos.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
 
     ReceiptManager.printHTMLReport("caja", mesFiltro, anioFiltro, movimientos);
+  },
+
+  /**
+   * Exportar base de datos LocalStorage completa a JSON para Respaldo Manual
+   */
+  exportManualBackup() {
+    try {
+      const backupData = {};
+      const prefix = typeof DB_KEY_PREFIX !== "undefined" ? DB_KEY_PREFIX : "club_nacional_sdg_";
+      
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith(prefix)) {
+          const raw = localStorage.getItem(key);
+          try {
+            backupData[key] = JSON.parse(raw);
+          } catch(e) {
+            backupData[key] = raw;
+          }
+        }
+      });
+
+      const jsonString = JSON.stringify(backupData, null, 2);
+      const blob = new Blob([jsonString], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement("a");
+      const timestamp = new Date().toISOString().replace(/T/, "_").replace(/:/g, "-").split(".")[0];
+      link.href = url;
+      link.download = `backup_club_nacional_sdg_${timestamp}.json`;
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      DB.logAuditoria("RESPALDO_MANUAL", "Copia de seguridad contable (JSON) exportada y descargada manualmente.");
+      UI.showToast("Copia de seguridad descargada con éxito.", "success");
+    } catch(err) {
+      console.error("Fallo al exportar backup manual:", err);
+      UI.showToast("Error al exportar la base de datos.", "danger");
+    }
   },
 
   /**
