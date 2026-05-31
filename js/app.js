@@ -429,6 +429,10 @@ const App = {
           }
 
           UI.showToast(`Simulación activada: Ahora eres ${found.rol}`, "success");
+        }
+      });
+    }
+
     // Formulario de Recuperación de Contraseña
     const recuperarForm = document.getElementById("form-recuperar-clave");
     if (recuperarForm) {
