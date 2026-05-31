@@ -510,7 +510,10 @@ const App = {
 
   loginOffline(username, password) {
     const usuarios = DB.get("usuarios", []);
-    const found = usuarios.find(u => u.usuario.toLowerCase() === username.toLowerCase() && u.clave === password);
+    const found = usuarios.find(u => 
+      (u.usuario.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === username.toLowerCase()) && 
+      u.clave === password
+    );
 
     if (found) {
       this.currentUser = found;
