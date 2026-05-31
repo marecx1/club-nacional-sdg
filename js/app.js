@@ -462,6 +462,23 @@ const App = {
   },
 
   /**
+   * Forzar Acceso Directo de Respaldo Contable
+   */
+  loginDemo() {
+    if (confirm("¿Deseas restablecer la caché del portal y acceder en Modo Demostración Local? Esto limpiará cualquier sesión previa conflictiva.")) {
+      DB.reset();
+      const usuarios = DB.get("usuarios", []);
+      const admin = usuarios.find(u => u.usuario === "admin");
+      if (admin) {
+        this.currentUser = admin;
+        sessionStorage.setItem("club_manager_user", JSON.stringify(admin));
+        this.launchApp();
+        DB.logAuditoria("INICIAR_SESIÓN", "Acceso de emergencia en Modo Demostración Local completado.");
+      }
+    }
+  },
+
+  /**
    * Lógica de Autenticación
    */
   async login(username, password) {
