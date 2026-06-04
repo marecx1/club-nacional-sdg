@@ -14,8 +14,13 @@ let supabase = null;
 // Inicialización segura del cliente de Supabase CDN
 if (SUPABASE_URL && SUPABASE_KEY && window.supabase) {
   try {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    console.log("Supabase inicializado correctamente.");
+    const tempSupabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    if (tempSupabase && tempSupabase.auth) {
+      supabase = tempSupabase;
+      console.log("Supabase inicializado correctamente.");
+    } else {
+      console.warn("Cliente de Supabase instanciado pero 'auth' no está definido.");
+    }
   } catch (e) {
     console.error("Error al instanciar cliente de Supabase:", e);
   }
