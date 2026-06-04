@@ -942,7 +942,7 @@ const ReceiptManager = {
       console.error("Error al generar Libro Diario PDF:", error);
       alert("Error al generar el Libro Diario en PDF: " + error.message);
     }
-  },,
+  },
 
   /**
    * Generar mensaje de recordatorio de pago para WhatsApp
