@@ -222,8 +222,8 @@ const App = {
     if (loginForm) {
       loginForm.addEventListener("submit", (e) => {
         e.preventDefault();
-        const user = document.getElementById("login-username").value;
-        const pass = document.getElementById("login-password").value;
+        const user = String(document.getElementById("login-username").value || "").trim();
+        const pass = String(document.getElementById("login-password").value || "").trim();
         this.login(user, pass);
       });
     }
@@ -482,12 +482,14 @@ const App = {
    * Lógica de Autenticación
    */
   async login(username, password) {
+    const cleanUser = String(username || "").trim();
+    const cleanPass = String(password || "").trim();
     if (supabase) {
       try {
-        const email = username.includes("@") ? username : (username.toLowerCase() === "admin" ? "jonasmareco28@gmail.com" : (username.toLowerCase() + "@clubnacional.org.py"));
+        const email = cleanUser.includes("@") ? cleanUser : (cleanUser.toLowerCase() === "admin" ? "jonasmareco28@gmail.com" : (cleanUser.toLowerCase() + "@clubnacional.org.py"));
         const { data, error } = await supabase.auth.signInWithPassword({
           email: email,
-          password: password
+          password: cleanPass
         });
         
         if (error) throw error;
@@ -509,8 +511,8 @@ const App = {
           };
         } else {
           const usuarios = DB.get("usuarios", []);
-          const matched = usuarios.find(u => u.usuario.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === email.toLowerCase());
-          found = matched ? { usuario: matched.usuario, nombre: matched.nombre, rol: matched.rol, email: matched.email } : { usuario: username, nombre: username, rol: "Consulta", email: email };
+          const matched = usuarios.find(u => u.usuario.toLowerCase() === cleanUser.toLowerCase() || u.email.toLowerCase() === email.toLowerCase());
+          found = matched ? { usuario: matched.usuario, nombre: matched.nombre, rol: matched.rol, email: matched.email } : { usuario: cleanUser, nombre: cleanUser, rol: "Consulta", email: email };
         }
         
         this.currentUser = found;
@@ -522,18 +524,20 @@ const App = {
         DB.logAuditoria("INICIAR_SESIÓN", "Inicio de sesión seguro mediante Supabase Auth exitoso.");
       } catch (err) {
         console.warn("Fallo de acceso a Supabase, intentando inicio de sesión local:", err.message);
-        this.loginOffline(username, password);
+        this.loginOffline(cleanUser, cleanPass);
       }
     } else {
-      this.loginOffline(username, password);
+      this.loginOffline(cleanUser, cleanPass);
     }
   },
 
   loginOffline(username, password) {
+    const cleanUser = String(username || "").trim();
+    const cleanPass = String(password || "").trim();
     const usuarios = DB.get("usuarios", []);
     const found = usuarios.find(u => 
-      (u.usuario.toLowerCase() === username.toLowerCase() || u.email.toLowerCase() === username.toLowerCase()) && 
-      u.clave === password
+      (u.usuario.toLowerCase() === cleanUser.toLowerCase() || u.email.toLowerCase() === cleanUser.toLowerCase()) && 
+      u.clave === cleanPass
     );
 
     if (found) {

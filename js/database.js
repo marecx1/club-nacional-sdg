@@ -4,6 +4,47 @@
  * Si las credenciales de Supabase no están configuradas, opera en Modo Simulador Local.
  */
 
+// Polyfill de seguridad para LocalStorage y SessionStorage (evita caídas por bloqueos de cookies de terceros o incógnito)
+(function() {
+  function createMemoryStorage() {
+    let store = {};
+    return {
+      getItem(key) { return store[key] || null; },
+      setItem(key, value) { store[key] = String(value); },
+      removeItem(key) { delete store[key]; },
+      clear() { store = {}; },
+      key(index) { return Object.keys(store)[index] || null; },
+      get length() { return Object.keys(store).length; }
+    };
+  }
+
+  try {
+    const testKey = "__storage_test__";
+    window.localStorage.setItem(testKey, testKey);
+    window.localStorage.removeItem(testKey);
+  } catch (e) {
+    console.warn("LocalStorage bloqueado por el navegador. Usando almacenamiento en memoria temporaria.");
+    Object.defineProperty(window, "localStorage", {
+      value: createMemoryStorage(),
+      writable: true,
+      configurable: true
+    });
+  }
+
+  try {
+    const testKey = "__storage_test__";
+    window.sessionStorage.setItem(testKey, testKey);
+    window.sessionStorage.removeItem(testKey);
+  } catch (e) {
+    console.warn("SessionStorage bloqueado por el navegador. Usando almacenamiento en memoria temporaria.");
+    Object.defineProperty(window, "sessionStorage", {
+      value: createMemoryStorage(),
+      writable: true,
+      configurable: true
+    });
+  }
+})();
+
 // Credenciales globales de Supabase (se leen de las variables globales del navegador)
 const SUPABASE_URL = window.SUPABASE_URL || "";
 const SUPABASE_KEY = window.SUPABASE_KEY || "";
@@ -31,8 +72,8 @@ const DB = {
    * Obtener datos de la caché local (Sincrónico)
    */
   get(key, defaultValue = null) {
-    const data = localStorage.getItem(DB_KEY_PREFIX + key);
     try {
+      const data = localStorage.getItem(DB_KEY_PREFIX + key);
       return data ? JSON.parse(data) : defaultValue;
     } catch (e) {
       console.error(`Error al leer la clave ${key} de LocalStorage`, e);
