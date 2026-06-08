@@ -3,6 +3,17 @@
 -- Script de configuración para editor SQL de Supabase (PostgreSQL)
 -- ===========================================================================
 
+-- 0. Tabla de Usuarios del Sistema
+CREATE TABLE IF NOT EXISTS usuarios (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    usuario TEXT UNIQUE NOT NULL,
+    nombre TEXT NOT NULL,
+    rol TEXT NOT NULL,
+    clave TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
+);
+
 -- 1. Tabla de Socios
 CREATE TABLE IF NOT EXISTS socios (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -94,6 +105,18 @@ CREATE TABLE IF NOT EXISTS auditoria (
 -- ===========================================================================
 -- INSERCIÓN DE DATOS SEMILLA (REALISTAS DE PARAGUAY)
 -- ===========================================================================
+
+-- Usuarios del Sistema Iniciales
+INSERT INTO usuarios (usuario, nombre, rol, clave, email) VALUES
+('admin', 'Jonas Mareco', 'Administrador', 'admin123', 'jonasmareco28@gmail.com'),
+('tesorero', 'Fredy', 'Tesorero', 'teso123', 'tesorero@clubnacional.org.py'),
+('secretario', 'Lucas', 'Secretario', 'secre123', 'secretario@clubnacional.org.py'),
+('consulta', 'Hugo Pitta', 'Consulta', 'con123', 'consulta@clubnacional.org.py')
+ON CONFLICT (usuario) DO UPDATE SET
+    nombre = EXCLUDED.nombre,
+    rol = EXCLUDED.rol,
+    clave = EXCLUDED.clave,
+    email = EXCLUDED.email;
 
 -- Clientes Comerciales Iniciales
 INSERT INTO clientes (nombre, ruc, telefono, email) VALUES

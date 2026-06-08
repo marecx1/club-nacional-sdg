@@ -487,10 +487,18 @@ const App = {
     if (supabase) {
       try {
         const email = cleanUser.includes("@") ? cleanUser : (cleanUser.toLowerCase() === "admin" ? "jonasmareco28@gmail.com" : (cleanUser.toLowerCase() + "@clubnacional.org.py"));
-        const { data, error } = await supabase.auth.signInWithPassword({
+        
+        // Timeout de seguridad de 2.5 segundos para evitar conexiones colgadas con Supabase
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Tiempo de espera agotado al conectar con Supabase")), 2500)
+        );
+        
+        const authPromise = supabase.auth.signInWithPassword({
           email: email,
           password: cleanPass
         });
+        
+        const { data, error } = await Promise.race([authPromise, timeoutPromise]);
         
         if (error) throw error;
         
