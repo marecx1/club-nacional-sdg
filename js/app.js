@@ -438,18 +438,15 @@ const App = {
     if (recuperarForm) {
       recuperarForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const email = document.getElementById("recuperar-email").value;
-        if (supabase) {
+        const email = String(document.getElementById("recuperar-email").value || "").trim();
+        if (window.fbAuth) {
           try {
-            const { error } = await supabase.auth.resetPasswordForEmail(email, {
-              redirectTo: window.location.origin
-            });
-            if (error) throw error;
+            await window.fbAuth.sendPasswordResetEmail(email);
             UI.closeModal("modal-recuperar-clave-backdrop");
             UI.showToast("Enlace de recuperación enviado. Revisa tu correo.", "success");
-            DB.logAuditoria("RECUPERAR_CONTRASEÑA", `Enlace de restablecimiento enviado a ${email}`);
+            DB.logAuditoria("RECUPERAR_CONTRASEÑA", `Enlace de restablecimiento de Firebase enviado a ${email}`);
           } catch (err) {
-            UI.showToast("Error: " + err.message, "danger");
+            UI.showToast("Error: " + (err.message || "No se pudo enviar el enlace."), "danger");
           }
         } else {
           // Simulación Offline
@@ -479,59 +476,51 @@ const App = {
   },
 
   /**
-   * Lógica de Autenticación
+   * Lógica de Autenticación con Firebase Auth + fallback local
    */
   async login(username, password) {
     const cleanUser = String(username || "").trim();
     const cleanPass = String(password || "").trim();
-    if (supabase) {
+
+    if (window.fbAuth) {
       try {
-        const email = cleanUser.includes("@") ? cleanUser : (cleanUser.toLowerCase() === "admin" ? "jonasmareco28@gmail.com" : (cleanUser.toLowerCase() + "@clubnacional.org.py"));
-        
-        // Timeout de seguridad de 2.5 segundos para evitar conexiones colgadas con Supabase
+        // Mapear nombre de usuario corto a email real
+        const emailMap = {
+          admin:       "jonasmareco28@gmail.com",
+          tesorero:    "tesorero@clubnacional.org.py",
+          secretario:  "secretario@clubnacional.org.py",
+          consulta:    "consulta@clubnacional.org.py"
+        };
+        const email = cleanUser.includes("@") ? cleanUser : (emailMap[cleanUser.toLowerCase()] || (cleanUser + "@clubnacional.org.py"));
+
+        // Timeout de 5 segundos por seguridad
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Tiempo de espera agotado al conectar con Supabase")), 2500)
+          setTimeout(() => reject(new Error("Tiempo de espera agotado. Verificá tu conexión a internet.")), 5000)
         );
-        
-        const authPromise = supabase.auth.signInWithPassword({
-          email: email,
-          password: cleanPass
-        });
-        
-        const { data, error } = await Promise.race([authPromise, timeoutPromise]);
-        
-        if (error) throw error;
-        
-        // Cargar perfil y rol de la base de datos de Supabase
-        const { data: dbUser, error: errU } = await supabase
-          .from("usuarios")
-          .select("*")
-          .eq("email", email)
-          .single();
-          
-        let found = null;
-        if (!errU && dbUser) {
-          found = {
-            usuario: dbUser.usuario,
-            nombre: dbUser.nombre,
-            rol: dbUser.rol,
-            email: dbUser.email
-          };
-        } else {
-          const usuarios = DB.get("usuarios", []);
-          const matched = usuarios.find(u => u.usuario.toLowerCase() === cleanUser.toLowerCase() || u.email.toLowerCase() === email.toLowerCase());
-          found = matched ? { usuario: matched.usuario, nombre: matched.nombre, rol: matched.rol, email: matched.email } : { usuario: cleanUser, nombre: cleanUser, rol: "Consulta", email: email };
-        }
-        
+
+        const authPromise = window.fbAuth.signInWithEmailAndPassword(email, cleanPass);
+        const userCredential = await Promise.race([authPromise, timeoutPromise]);
+
+        // Cargar perfil desde LocalStorage (datos semilla o Firestore ya sincronizados)
+        const usuarios = DB.get("usuarios", []);
+        const matched  = usuarios.find(u =>
+          u.email.toLowerCase() === email.toLowerCase() ||
+          u.usuario.toLowerCase() === cleanUser.toLowerCase()
+        );
+        const found = matched
+          ? { usuario: matched.usuario, nombre: matched.nombre, rol: matched.rol, email: matched.email }
+          : { usuario: cleanUser, nombre: cleanUser, rol: "Consulta", email };
+
         this.currentUser = found;
         sessionStorage.setItem("club_manager_user", JSON.stringify(found));
         this.launchApp();
-        
-        // Sincronizar todos los datos contables desde la nube al acceder
-        DB.syncFromSupabase();
-        DB.logAuditoria("INICIAR_SESIÓN", "Inicio de sesión seguro mediante Supabase Auth exitoso.");
+
+        // Descargar datos de Firestore en segundo plano
+        DB.syncFromFirestore();
+        DB.logAuditoria("INICIAR_SESIÓN", "Inicio de sesión seguro mediante Firebase Auth exitoso.");
+
       } catch (err) {
-        console.warn("Fallo de acceso a Supabase, intentando inicio de sesión local:", err.message);
+        console.warn("Fallo de Firebase Auth, intentando inicio de sesión local:", err.message);
         this.loginOffline(cleanUser, cleanPass);
       }
     } else {
@@ -543,8 +532,8 @@ const App = {
     const cleanUser = String(username || "").trim();
     const cleanPass = String(password || "").trim();
     const usuarios = DB.get("usuarios", []);
-    const found = usuarios.find(u => 
-      (u.usuario.toLowerCase() === cleanUser.toLowerCase() || u.email.toLowerCase() === cleanUser.toLowerCase()) && 
+    const found = usuarios.find(u =>
+      (u.usuario.toLowerCase() === cleanUser.toLowerCase() || u.email.toLowerCase() === cleanUser.toLowerCase()) &&
       u.clave === cleanPass
     );
 
@@ -552,7 +541,7 @@ const App = {
       this.currentUser = found;
       sessionStorage.setItem("club_manager_user", JSON.stringify(found));
       this.launchApp();
-      DB.logAuditoria("INICIAR_SESIÓN", "Inicio de sesión local (Simulador offline) exitoso.");
+      DB.logAuditoria("INICIAR_SESIÓN", "Inicio de sesión local (modo offline) exitoso.");
     } else {
       alert("Error: Usuario o contraseña incorrectos para Club Nacional SDG.");
       UI.showToast("Acceso denegado: Credenciales inválidas.", "danger");

@@ -17,17 +17,30 @@
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
   <!-- Generador de PDF jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- Cliente de Base de Datos Real Supabase (Desactivado) -->
-  <!-- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> -->
-  
+  <!-- =====================================================================
+       FIREBASE - Base de Datos en la Nube (CDN, sin npm requerido)
+       ===================================================================== -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
   <script>
     // =======================================================================
-    // CONFIGURACIÓN DE CONEXIÓN A TU BASE DE DATOS REAL EN LA NUBE (SUPABASE)
+    // CONFIGURACIÓN DE CONEXIÓN A FIREBASE (CLUB NACIONAL ODS)
     // =======================================================================
-    // Si dejas estas claves vacías, la app operará de forma segura en "Modo Simulador local" persistente.
-    // Pega aquí tus credenciales de Supabase para activar la base de datos en la nube:
-    window.SUPABASE_URL = "";
-    window.SUPABASE_KEY = "";
+    const firebaseConfig = {
+      apiKey: "AIzaSyAgGNQBuLbe92CDQ6FpsxsQYmna06WKaIs",
+      authDomain: "clubnacional-35256.firebaseapp.com",
+      projectId: "clubnacional-35256",
+      storageBucket: "clubnacional-35256.firebasestorage.app",
+      messagingSenderId: "581848694721",
+      appId: "1:581848694721:web:2104d784720ac24eb9b940"
+    };
+    // Inicializar Firebase globalmente
+    firebase.initializeApp(firebaseConfig);
+    window.fbAuth = firebase.auth();
+    window.fbDB  = firebase.firestore();
+    console.log("Firebase inicializado correctamente.");
   </script>
 </head>
 <body>
