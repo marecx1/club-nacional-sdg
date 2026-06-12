@@ -376,7 +376,7 @@
         </div>
         
         <!-- Cards Grid de Socios (De acuerdo a captura) -->
-        <div id="socios-cards-grid" class="socios-cards-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; width: 100%;">
+        <div id="socios-cards-grid" class="socios-cards-grid">
           <!-- Se inyecta dinámicamente -->
         </div>
       </section>
@@ -384,7 +384,7 @@
       <!-- 3. VISTA: INGRESOS (CUENTAS E INGRESOS) -->
       <section id="view-ingresos" class="spa-view hidden">
         <!-- 3 kpis contables en el tope -->
-        <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 25px;">
+        <div class="kpi-grid" style="margin-bottom: 25px;">
           <div class="kpi-card green" style="padding: 15px 20px; min-height: auto;">
             <div class="kpi-header" style="margin-bottom: 8px;">
               <span class="kpi-title" style="font-size: 11px;">INGRESOS REALIZADOS (₲)</span>
@@ -425,7 +425,7 @@
         </div>
 
         <!-- Filtros para Cuentas e Ingresos -->
-        <div class="filters-bar" style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; align-items: center; margin-bottom: 12px; background: rgba(255,255,255,0.02); padding: 12px 20px; border-radius: 12px 12px 0 0; border: 1px solid var(--card-border);">
+        <div class="filters-bar-grid">
           <div class="search-box" style="margin: 0; width: 100%;">
             <i data-lucide="search"></i>
             <input type="text" id="trans-search" placeholder="Buscar transacción por concepto, ref..." oninput="UI.renderIngresos()">
@@ -457,7 +457,7 @@
         </div>
 
         <!-- Filtro de Rango de Fechas -->
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 10px 20px; border-radius: 0 0 12px 12px; border: 1px solid var(--card-border); border-top: none; flex-wrap: wrap;">
+        <div class="date-range-bar">
           <div style="display: flex; align-items: center; gap: 6px;">
             <i data-lucide="calendar-range" style="width:15px; height:15px; color: var(--primary);"></i>
             <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Rango de Fechas:</span>
@@ -508,7 +508,7 @@
         </div>
 
         <!-- Filtros de Fecha para Egresos -->
-        <div class="filters-bar" style="display: flex; gap: 15px; align-items: center; margin-bottom: 12px; background: rgba(255,255,255,0.02); padding: 12px 20px; border-radius: 12px 12px 0 0; border: 1px solid var(--card-border); flex-wrap: wrap;">
+        <div class="filters-bar">
           <div style="display: flex; align-items: center; gap: 8px;">
             <i data-lucide="calendar" style="color: var(--danger); width: 16px; height: 16px;"></i>
             <span style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Filtrar por Mes/Año:</span>
@@ -544,7 +544,7 @@
         </div>
 
         <!-- Filtro de Rango de Fechas para Egresos -->
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 10px 20px; border-radius: 0 0 12px 12px; border: 1px solid var(--card-border); border-top: none; flex-wrap: wrap;">
+        <div class="date-range-bar">
           <div style="display: flex; align-items: center; gap: 6px;">
             <i data-lucide="calendar-range" style="width:15px; height:15px; color: var(--danger);"></i>
             <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Rango de Fechas:</span>
@@ -592,7 +592,7 @@
         </div>
 
         <!-- Filtros de Fecha para Caja Diaria -->
-        <div class="filters-bar" style="display: flex; gap: 15px; align-items: center; margin-top: 25px; margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--card-border); flex-wrap: wrap;">
+        <div class="filters-bar" style="margin-top: 25px; margin-bottom: 20px;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <i data-lucide="calendar" style="color: var(--primary); width: 16px; height: 16px;"></i>
             <span style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Filtrar por Período:</span>

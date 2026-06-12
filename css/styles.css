@@ -1768,3 +1768,281 @@ body.light-theme .select-premium option {
   background-color: #ffffff !important;
   color: #111827 !important;
 }
+
+/* ==========================================================================
+   Modern Responsive Design System Overrides
+   ========================================================================== */
+
+/* Ajuste general de espaciado adaptativo */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 15px;
+    gap: 20px;
+  }
+}
+
+/* Modales Responsivos */
+@media (max-width: 768px) {
+  .modal-backdrop {
+    padding: 10px;
+  }
+  .premium-modal {
+    max-width: 95vw;
+    border-radius: 16px;
+  }
+  .modal-header, .modal-body, .modal-footer {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Apilar botones del pie del modal verticalmente si el espacio es reducido */
+  .modal-footer {
+    flex-direction: column-reverse;
+    gap: 10px;
+    align-items: stretch;
+  }
+  .modal-footer button, .modal-footer .btn-primary, .modal-footer .btn-secondary, .modal-footer .btn-success {
+    width: 100% !important;
+    justify-content: center;
+    margin: 0 !important;
+  }
+}
+
+/* Evitar zoom automático en Safari/iOS aumentando fuentes de inputs a 16px */
+@media (max-width: 768px) {
+  .input-wrapper input,
+  .input-wrapper select,
+  .input-wrapper textarea,
+  .select-premium,
+  .filter-select {
+    font-size: 16px !important;
+  }
+}
+
+/* Touch targets más cómodos para botones de acción en móviles */
+@media (max-width: 768px) {
+  .btn-action {
+    width: 42px !important;
+    height: 42px !important;
+    font-size: 18px !important;
+  }
+  .row-actions {
+    gap: 12px;
+  }
+}
+
+/* Grid de Socios */
+.socios-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 20px;
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .socios-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+}
+
+/* Tablas Responsivas con Scroll */
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.premium-table {
+  width: 100%;
+  min-width: 800px; /* Evita que las columnas se compriman y fuerza el scroll horizontal */
+}
+
+/* Filtros y barras de búsqueda */
+.filters-bar {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 12px 20px;
+  border-radius: 12px 12px 0 0;
+  border: 1px solid var(--card-border);
+  flex-wrap: wrap;
+}
+
+.filters-bar-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 12px 20px;
+  border-radius: 12px 12px 0 0;
+  border: 1px solid var(--card-border);
+}
+
+.date-range-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 10px 20px;
+  border-radius: 0 0 12px 12px;
+  border: 1px solid var(--card-border);
+  border-top: none;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .filters-bar-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .filters-bar-grid > *:first-child {
+    grid-column: span 2;
+  }
+  .filters-bar {
+    gap: 10px;
+    padding: 12px 15px;
+  }
+}
+
+@media (max-width: 576px) {
+  .filters-bar-grid {
+    grid-template-columns: 1fr;
+  }
+  .filters-bar-grid > *:first-child {
+    grid-column: span 1;
+  }
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .filters-bar > select,
+  .filters-bar > button,
+  .filters-bar > div {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+  
+  .date-range-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding: 15px;
+  }
+  .date-range-bar > div {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .date-range-bar > div > input {
+    width: 60% !important;
+    padding: 6px 10px !important;
+  }
+  .date-range-bar > button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Cabecera Topbar Responsiva */
+@media (max-width: 768px) {
+  .topbar-title p {
+    display: none; /* Ocultar subtítulo largo en tablets y móviles */
+  }
+  .topbar-title h2 {
+    font-size: 20px;
+  }
+}
+
+@media (max-width: 576px) {
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .topbar-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* Panel de Notificaciones fijo y limpio en pantallas medianas y chicas */
+@media screen and (max-width: 768px) {
+  .notif-panel {
+    position: fixed;
+    top: 70px;
+    left: 15px;
+    right: 15px;
+    width: auto;
+    max-height: calc(100vh - 90px);
+  }
+  .notif-panel::before {
+    display: none;
+  }
+}
+
+/* Carnet Digital - Evitar desborde en pantallas ultra-angostas (320px) */
+@media (max-width: 360px) {
+  .carnet-digital {
+    width: 280px;
+    height: 430px;
+    padding: 16px;
+  }
+  .carnet-avatar-frame {
+    width: 80px;
+    height: 80px;
+  }
+  .carnet-qr-container {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 5px;
+  }
+  .carnet-info {
+    margin-bottom: 10px;
+  }
+  .carnet-name {
+    font-size: 16px;
+  }
+}
+
+/* Filtros de Socios Responsivos */
+@media (max-width: 576px) {
+  .search-filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .search-filters-bar > .search-box {
+    min-width: 100%;
+  }
+  .search-filters-bar > .filter-select {
+    width: 100%;
+  }
+  .view-header-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+  .view-header-actions > button,
+  .view-header-actions > .btn-add {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Login Card Responsiva */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 24px 16px;
+    gap: 20px;
+  }
+  .login-header h1 {
+    font-size: 22px;
+  }
+}

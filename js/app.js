@@ -456,6 +456,17 @@ const App = {
         }
       });
     }
+
+    // 10. Cerrar sidebar en móviles al hacer click fuera
+    document.addEventListener("click", (e) => {
+      const sidebar = document.getElementById("app-sidebar");
+      const toggleBtn = document.querySelector(".sidebar-toggle-btn");
+      if (sidebar && sidebar.classList.contains("active")) {
+        if (!sidebar.contains(e.target) && (!toggleBtn || !toggleBtn.contains(e.target))) {
+          sidebar.classList.remove("active");
+        }
+      }
+    });
   },
 
   /**
