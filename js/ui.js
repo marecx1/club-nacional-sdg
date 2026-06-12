@@ -692,6 +692,18 @@ const UI = {
       filteredEgresos = filteredEgresos.filter(e => new Date(e.fecha).getFullYear() === parseInt(anioFiltro));
     }
 
+    // Filtrar por Rango de Fechas (Desde / Hasta)
+    const egresoDesde = document.getElementById("egreso-filter-fecha-desde")?.value;
+    const egresoHasta = document.getElementById("egreso-filter-fecha-hasta")?.value;
+    if (egresoDesde) {
+      const desde = new Date(egresoDesde + "T00:00:00");
+      filteredEgresos = filteredEgresos.filter(e => new Date(e.fecha) >= desde);
+    }
+    if (egresoHasta) {
+      const hasta = new Date(egresoHasta + "T23:59:59");
+      filteredEgresos = filteredEgresos.filter(e => new Date(e.fecha) <= hasta);
+    }
+
     // Determinar nivel de acceso actual
     const rol = App.currentUser ? App.currentUser.rol : "Consulta";
     const hasFinancialAccess = ["Administrador", "Tesorero"].includes(rol);
@@ -1185,5 +1197,16 @@ const UI = {
     if (desde) desde.value = "";
     if (hasta) hasta.value = "";
     this.renderIngresos();
+  },
+
+  /**
+   * Limpiar filtros de fecha de Egresos
+   */
+  limpiarFiltroFechasEgresos() {
+    const desde = document.getElementById("egreso-filter-fecha-desde");
+    const hasta = document.getElementById("egreso-filter-fecha-hasta");
+    if (desde) desde.value = "";
+    if (hasta) hasta.value = "";
+    this.renderEgresos();
   }
 };

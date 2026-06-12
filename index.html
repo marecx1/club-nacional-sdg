@@ -508,10 +508,10 @@
         </div>
 
         <!-- Filtros de Fecha para Egresos -->
-        <div class="filters-bar" style="display: flex; gap: 15px; align-items: center; margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--card-border); flex-wrap: wrap;">
+        <div class="filters-bar" style="display: flex; gap: 15px; align-items: center; margin-bottom: 12px; background: rgba(255,255,255,0.02); padding: 12px 20px; border-radius: 12px 12px 0 0; border: 1px solid var(--card-border); flex-wrap: wrap;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <i data-lucide="calendar" style="color: var(--danger); width: 16px; height: 16px;"></i>
-            <span style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Filtrar por Fecha:</span>
+            <span style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Filtrar por Mes/Año:</span>
           </div>
           <select id="filtro-egreso-mes" class="select-premium" onchange="UI.renderEgresos()" style="width: 150px; background: var(--bg-card); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 6px; padding: 6px 10px; font-size: 13px; outline: none; cursor: pointer;">
             <option value="todos" selected>Todos los Meses</option>
@@ -540,6 +540,25 @@
           </button>
           <button class="btn-secondary" onclick="ReceiptManager.generateLibroPDF(document.getElementById('filtro-egreso-mes').value, document.getElementById('filtro-egreso-anio').value)" style="display:flex; align-items:center; gap:6px; padding:6px 12px; font-size:13px; border-radius:6px; border: 1px solid var(--card-border); background: var(--bg-card); color: var(--text-primary); cursor:pointer; transition: all 0.2s ease;">
             <i data-lucide="printer" style="color:var(--warning); width: 14px; height: 14px;"></i> Imprimir Libro PDF
+          </button>
+        </div>
+
+        <!-- Filtro de Rango de Fechas para Egresos -->
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px; background: rgba(255,255,255,0.02); padding: 10px 20px; border-radius: 0 0 12px 12px; border: 1px solid var(--card-border); border-top: none; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="calendar-range" style="width:15px; height:15px; color: var(--danger);"></i>
+            <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Rango de Fechas:</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <label style="font-size: 12px; color: var(--text-muted);">Desde:</label>
+            <input type="date" id="egreso-filter-fecha-desde" onchange="UI.renderEgresos()" style="background: var(--bg-card); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 6px; padding: 5px 10px; font-size: 12.5px; outline: none; cursor: pointer;">
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <label style="font-size: 12px; color: var(--text-muted);">Hasta:</label>
+            <input type="date" id="egreso-filter-fecha-hasta" onchange="UI.renderEgresos()" style="background: var(--bg-card); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 6px; padding: 5px 10px; font-size: 12.5px; outline: none; cursor: pointer;">
+          </div>
+          <button onclick="UI.limpiarFiltroFechasEgresos()" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: var(--danger); border-radius: 6px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+            <i data-lucide="x" style="width:13px; height:13px;"></i> Limpiar
           </button>
         </div>
         
