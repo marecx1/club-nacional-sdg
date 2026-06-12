@@ -588,6 +588,18 @@ const UI = {
       unified = unified.filter(m => m.metodoPago === filterMet);
     }
 
+    // Filtrar por Rango de Fechas
+    const fechaDesde = document.getElementById("trans-filter-fecha-desde")?.value;
+    const fechaHasta = document.getElementById("trans-filter-fecha-hasta")?.value;
+    if (fechaDesde) {
+      const desde = new Date(fechaDesde + "T00:00:00");
+      unified = unified.filter(m => new Date(m.fecha) >= desde);
+    }
+    if (fechaHasta) {
+      const hasta = new Date(fechaHasta + "T23:59:59");
+      unified = unified.filter(m => new Date(m.fecha) <= hasta);
+    }
+
     if (unified.length === 0) {
       tableBody.innerHTML = `
         <tr>
@@ -1162,5 +1174,16 @@ const UI = {
     if (mesSelect) mesSelect.value = "todos";
     if (anioSelect) anioSelect.value = "todos";
     this.renderEgresos();
+  },
+
+  /**
+   * Limpiar los filtros de fecha del Libro Diario
+   */
+  limpiarFiltroFechas() {
+    const desde = document.getElementById("trans-filter-fecha-desde");
+    const hasta = document.getElementById("trans-filter-fecha-hasta");
+    if (desde) desde.value = "";
+    if (hasta) hasta.value = "";
+    this.renderIngresos();
   }
 };
