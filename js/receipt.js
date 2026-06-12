@@ -75,7 +75,7 @@ const ReceiptManager = {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.5);
     doc.text("BALANCE GENERAL Y ESTADO DE CUENTAS INSTITUCIONALES", 44, 20);
-    doc.text("Lambaré, Paraguay • Gestión Deportiva y Social", 44, 25);
+    doc.text("Saltos del Guairá, Paraguay • Gestión Deportiva y Social", 44, 25);
 
     // 2. Pie de página en cada página
     doc.setDrawColor(226, 232, 240);
@@ -85,8 +85,45 @@ const ReceiptManager = {
     doc.setTextColor(100, 116, 139);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
-    doc.text("CLUB NACIONAL ODS - Sistema de Gestión Club Manager Pro PY", 15, 284);
+    doc.text("CLUB NACIONAL ODS • Saltos del Guairá - Sistema de Gestión Club Manager Pro PY", 15, 284);
     doc.text(`Página ${pageNumber} de ${totalPages}`, 180, 284);
+  },
+
+  /**
+   * Convierte un número entero en palabras en español (para Guaraníes)
+   * @param {number} numero
+   * @returns {string}
+   */
+  montoEnLetras(numero) {
+    const unidades  = ["","UN","DOS","TRES","CUATRO","CINCO","SEIS","SIETE","OCHO","NUEVE"];
+    const especiales = ["DIEZ","ONCE","DOCE","TRECE","CATORCE","QUINCE","DIECISÉIS","DIECISIETE","DIECIOCHO","DIECINUEVE"];
+    const decenas   = ["","","VEINTE","TREINTA","CUARENTA","CINCUENTA","SESENTA","SETENTA","OCHENTA","NOVENTA"];
+    const centenas  = ["","CIENTO","DOSCIENTOS","TRESCIENTOS","CUATROCIENTOS","QUINIENTOS","SEISCIENTOS","SETECIENTOS","OCHOCIENTOS","NOVECIENTOS"];
+
+    if (numero === 0) return "CERO";
+    if (numero === 100) return "CIEN";
+
+    const grupo = (n) => {
+      let resultado = "";
+      if (n >= 100) { resultado += centenas[Math.floor(n / 100)] + " "; n %= 100; }
+      if (n >= 10 && n <= 19) { return resultado + especiales[n - 10]; }
+      if (n >= 20) { resultado += decenas[Math.floor(n / 10)]; n %= 10; if (n > 0) resultado += " Y "; }
+      if (n > 0) resultado += unidades[n];
+      return resultado.trim();
+    };
+
+    let resultado = "";
+    const billones  = Math.floor(numero / 1000000000);
+    const millones  = Math.floor((numero % 1000000000) / 1000000);
+    const miles     = Math.floor((numero % 1000000) / 1000);
+    const resto     = numero % 1000;
+
+    if (billones > 0)  resultado += grupo(billones)  + (billones  === 1 ? " MIL MILLONES " : " MIL MILLONES ");
+    if (millones > 0)  resultado += grupo(millones)  + (millones  === 1 ? " MILLÓN "       : " MILLONES ");
+    if (miles > 0)     resultado += (miles === 1 ? "MIL " : grupo(miles) + " MIL ");
+    if (resto > 0)     resultado += grupo(resto);
+
+    return resultado.trim();
   },
 
   /**
@@ -130,157 +167,212 @@ const ReceiptManager = {
     // Carga de logo asíncrona
     const logoImg = await this.loadLogo();
 
-    // --- ESTILIZACIÓN DEL RECIBO PREMIUM ---
-    
-    // 1. Fondos y Marcos Geométricos
-    doc.setFillColor(11, 18, 34); // Azul Medianoche
-    doc.rect(0, 0, 210, 38, "F");
-    
-    doc.setFillColor(16, 185, 129); // Línea verde de acento
-    doc.rect(0, 38, 210, 2, "F");
+    // =======================================================================
+    // ENCABEZADO PREMIUM DEL RECIBO
+    // =======================================================================
 
-    // 2. Logo y Encabezado del Recibo
+    // Banda superior azul medianoche
+    doc.setFillColor(11, 18, 34);
+    doc.rect(0, 0, 210, 42, "F");
+
+    // Banda lateral verde de acento
+    doc.setFillColor(16, 185, 129);
+    doc.rect(0, 0, 4, 42, "F");
+
+    // Línea verde inferior del encabezado
+    doc.setFillColor(16, 185, 129);
+    doc.rect(0, 42, 210, 1.8, "F");
+
+    // Logo
     if (logoImg) {
-      doc.addImage(logoImg, "JPEG", 15, 7, 24, 24);
+      doc.addImage(logoImg, "JPEG", 9, 7, 26, 26);
     }
+
+    // Nombre del Club
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(17);
+    doc.text("CLUB NACIONAL ODS", 40, 15);
+
+    // Subtítulo y ciudad
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(180, 220, 200);
+    doc.text("ADMINISTRACIÓN Y CONTABILIDAD DEPORTIVA", 40, 21);
+    doc.text("Saltos del Guairá, Canindeyú • Paraguay", 40, 26);
+
+    // RUC y Personería Jurídica
+    doc.setTextColor(148, 200, 180);
+    doc.setFontSize(7);
+    doc.text("RUC Nº: 800234190-2  •  Personería Jurídica Nº 1248/1974  •  Fund. 02/02/1975", 40, 31);
+
+    // Cuadro flotante del Recibo Nº (derecha)
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(142, 6, 58, 30, 3, 3, "F");
+
+    doc.setFillColor(16, 185, 129);
+    doc.roundedRect(142, 6, 58, 10, 3, 3, "F");
+    doc.rect(142, 12, 58, 4, "F"); // cuadrado inferior para que la esquina sea recta abajo
 
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.text("CLUB NACIONAL ODS", 44, 16);
-    
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.text("ADMINISTRACIÓN Y CONTABILIDAD DEPORTIVA", 44, 22);
-    doc.text("Lambaré, Paraguay", 44, 27);
-    
-    // Cuadro del Recibo Nº
-    doc.setFillColor(255, 255, 255);
-    doc.roundedRect(145, 8, 50, 22, 2, 2, "F");
-    
-    doc.setTextColor(11, 18, 34);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.text("RECIBO DE COBRO", 150, 14);
-    doc.setFontSize(13);
-    doc.setTextColor(37, 99, 235); // Azul principal
-    doc.text(`Nº 001-${String(ingreso.id).padStart(6, '0')}`, 150, 24);
-
-    // 3. Detalles de Emisión (Fecha y Operador)
-    doc.setTextColor(100, 116, 139);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    const fechaFormat = new Date(ingreso.fecha).toLocaleString("es-PY");
-    doc.text(`Fecha y Hora de Emisión: ${fechaFormat}`, 15, 48);
-    doc.text(`Operador de Caja: ${ingreso.usuario.toUpperCase()}`, 15, 53);
-
-    // Línea divisoria
-    doc.setDrawColor(226, 232, 240);
-    doc.setLineWidth(0.5);
-    doc.line(15, 57, 195, 57);
-
-    // 4. Datos del Socio / Pagador
-    doc.setTextColor(11, 18, 34);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text("DATOS DEL SOCIO / DEPOSITANTE", 15, 65);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text(`Nombre Completo:`, 15, 73);
-    doc.setFont("helvetica", "bold");
-    doc.text(`${socioNombre}`, 50, 73);
-
-    doc.setFont("helvetica", "normal");
-    doc.text(`Documento de Identidad:`, 15, 79);
-    doc.setFont("helvetica", "bold");
-    doc.text(`${socioDoc}`, 60, 79);
-
-    doc.setFont("helvetica", "normal");
-    doc.text(`Número de Socio:`, 15, 85);
-    doc.setFont("helvetica", "bold");
-    doc.text(`${socioNro}`, 50, 85);
-
-    // 5. Tabla de Transacción (Diseño Corporativo)
-    doc.setFillColor(241, 245, 249);
-    doc.rect(15, 95, 180, 10, "F");
-    
-    doc.setTextColor(71, 85, 105);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.text("CONCEPTO / DETALLE DE PAGO", 20, 101);
-    doc.text("MÉTODO", 130, 101);
-    doc.text("SUBTOTAL", 165, 101);
-
-    // Cuerpo de la tabla
-    doc.setTextColor(15, 23, 42);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text(`${ingreso.concepto}`, 20, 113);
-    doc.text(`${ingreso.metodoPago}`, 130, 113);
-    
-    doc.setFont("helvetica", "bold");
-    doc.text(`${formatCurrency(ingreso.monto)}`, 165, 113);
-
-    // Línea final de tabla
-    doc.line(15, 120, 195, 120);
-
-    // Total General Box
-    doc.setFillColor(241, 245, 249);
-    doc.roundedRect(125, 126, 70, 15, 1, 1, "F");
+    doc.setFontSize(8);
+    doc.text("RECIBO DE COBRO", 152, 13);
 
     doc.setTextColor(11, 18, 34);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
-    doc.text("TOTAL ABONADO:", 129, 135);
-    doc.setTextColor(16, 185, 129); // Verde éxito
-    doc.setFontSize(13);
-    doc.text(`${formatCurrency(ingreso.monto)}`, 165, 135);
+    doc.text(`Nº 001-${String(ingreso.id).padStart(6, "0")}`, 152, 22);
 
-    // 6. Mensaje de Agradecimiento e Información Legal
-    doc.setTextColor(100, 116, 139);
-    doc.setFont("helvetica", "italic");
-    doc.setFontSize(8.5);
-    doc.text("Este comprobante constituye un recibo oficial de cobro emitido por la administración digital de CLUB NACIONAL ODS.", 15, 160);
-    doc.text("Gracias por su aporte y su puntualidad en las cuotas sociales, haciendo crecer nuestro club.", 15, 164);
-
-    // 7. Firmas y Sello de Validación
-    // Sello Digital de Caja
-    doc.setDrawColor(16, 185, 129);
-    doc.setLineWidth(0.8);
-    doc.roundedRect(25, 175, 45, 20, 2, 2, "D");
-    
-    doc.setTextColor(16, 185, 129);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(9);
-    doc.text("CAJA VALIDADA", 32, 182);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.text("CLUB NACIONAL ODS", 29, 187);
-    doc.setFontSize(7);
-    doc.text(`REF: CNODS-SEC-${ingreso.id}`, 34, 192);
+    doc.setFontSize(7.5);
+    doc.setTextColor(71, 85, 105);
+    const fechaEmision = new Date(ingreso.fecha).toLocaleDateString("es-PY", { day: "2-digit", month: "2-digit", year: "numeric" });
+    doc.text(`Fecha: ${fechaEmision}`, 152, 30);
 
-    // Firma del Cajero
-    doc.setDrawColor(148, 163, 184);
-    doc.setLineWidth(0.5);
-    doc.line(130, 188, 185, 188);
-    
+    // =======================================================================
+    // DATOS DE EMISIÓN
+    // =======================================================================
     doc.setTextColor(71, 85, 105);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.5);
-    doc.text("Firma del Responsable / Tesorero", 137, 193);
+    const fechaHoraFormat = new Date(ingreso.fecha).toLocaleString("es-PY");
+    doc.text(`Fecha y Hora de Emisión: ${fechaHoraFormat}`, 15, 52);
+    doc.text(`Operador de Caja: ${ingreso.usuario.toUpperCase()}`, 15, 57);
 
-    // Guardar / Descargar PDF con fallback robusto
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.5);
+    doc.line(15, 61, 195, 61);
+
+    // =======================================================================
+    // DATOS DEL SOCIO / DEPOSITANTE
+    // =======================================================================
+    doc.setTextColor(11, 18, 34);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text("DATOS DEL SOCIO / DEPOSITANTE", 15, 69);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text("Nombre Completo:", 15, 77);
+    doc.setFont("helvetica", "bold");
+    doc.text(`${socioNombre}`, 52, 77);
+
+    doc.setFont("helvetica", "normal");
+    doc.text("Documento / RUC:", 15, 83);
+    doc.setFont("helvetica", "bold");
+    doc.text(`${socioDoc}`, 52, 83);
+
+    doc.setFont("helvetica", "normal");
+    doc.text("Número de Socio:", 15, 89);
+    doc.setFont("helvetica", "bold");
+    doc.text(`${socioNro}`, 52, 89);
+
+    // =======================================================================
+    // TABLA DE TRANSACCIÓN
+    // =======================================================================
+    doc.setFillColor(241, 245, 249);
+    doc.rect(15, 98, 180, 10, "F");
+
+    doc.setTextColor(71, 85, 105);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.text("CONCEPTO / DETALLE DE PAGO", 20, 104);
+    doc.text("MÉTODO", 130, 104);
+    doc.text("MONTO (₲)", 163, 104);
+
+    doc.setTextColor(15, 23, 42);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`${ingreso.concepto}`, 20, 116);
+    doc.text(`${ingreso.metodoPago}`, 130, 116);
+    doc.setFont("helvetica", "bold");
+    doc.text(`${formatCurrency(ingreso.monto)}`, 163, 116);
+
+    doc.setDrawColor(226, 232, 240);
+    doc.line(15, 122, 195, 122);
+
+    // =======================================================================
+    // CAJA TOTAL ABONADO (en número y en letras)
+    // =======================================================================
+    // Fondo de la caja de total
+    doc.setFillColor(11, 18, 34);
+    doc.roundedRect(15, 129, 180, 24, 2, 2, "F");
+
+    // Etiqueta
+    doc.setTextColor(180, 220, 200);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("TOTAL ABONADO EN GUARANÍES:", 20, 137);
+
+    // Monto en número grande
+    doc.setTextColor(16, 185, 129);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text(`${formatCurrency(ingreso.monto)}`, 20, 147);
+
+    // Monto en letras (debajo)
+    const montoLetras = this.montoEnLetras(Math.round(ingreso.monto));
+    doc.setFillColor(255, 255, 255, 0);
+    doc.setTextColor(148, 200, 180);
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(7.5);
+    doc.text(`Son: ${montoLetras} GUARANÍES`, 20, 150);
+
+    // =======================================================================
+    // MENSAJE LEGAL
+    // =======================================================================
+    doc.setTextColor(100, 116, 139);
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(8);
+    doc.text("Este comprobante constituye un recibo oficial de cobro emitido por la administración de CLUB NACIONAL ODS.", 15, 165);
+    doc.text("Gracias por su aporte y puntualidad en las cuotas sociales.", 15, 169);
+
+    // =======================================================================
+    // SELLO Y FIRMA
+    // =======================================================================
+    // Sello verde
+    doc.setDrawColor(16, 185, 129);
+    doc.setLineWidth(0.8);
+    doc.roundedRect(20, 178, 50, 22, 2, 2, "D");
+
+    doc.setTextColor(16, 185, 129);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("CAJA VALIDADA", 28, 186);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.text("CLUB NACIONAL ODS", 25, 191);
+    doc.text(`REF: CNODS-${String(ingreso.id).padStart(6,"0")}`, 28, 196);
+
+    // Firma
+    doc.setDrawColor(148, 163, 184);
+    doc.setLineWidth(0.5);
+    doc.line(130, 192, 190, 192);
+    doc.setTextColor(71, 85, 105);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.text("Firma del Responsable / Tesorero", 133, 197);
+
+    // Pie del recibo
+    doc.setDrawColor(226, 232, 240);
+    doc.line(15, 207, 195, 207);
+    doc.setTextColor(148, 163, 184);
+    doc.setFontSize(7);
+    doc.text("CLUB NACIONAL ODS • Saltos del Guairá, Canindeyú, Paraguay • Sistema Club Manager Pro PY", 15, 212);
+
+    // =======================================================================
+    // GUARDAR / DESCARGAR PDF
+    // =======================================================================
     try {
-      doc.save(`Recibo_CNODS_${String(ingreso.id).padStart(6, '0')}.pdf`);
+      doc.save(`Recibo_CNODS_${String(ingreso.id).padStart(6, "0")}.pdf`);
     } catch (saveError) {
-      console.warn("doc.save() bloqueado o falló, intentando abrir en nueva pestaña:", saveError);
+      console.warn("doc.save() bloqueado, intentando abrir en nueva pestaña:", saveError);
       try {
-        const blobUrl = doc.output('bloburl');
-        window.open(blobUrl, '_blank');
+        const blobUrl = doc.output("bloburl");
+        window.open(blobUrl, "_blank");
       } catch (blobError) {
-        console.error("Fallo al abrir blob url:", blobError);
-        alert("El navegador bloqueó la descarga automática. Por favor, permite las descargas y ventanas emergentes para este portal.");
+        alert("El navegador bloqueó la descarga. Permití las descargas y ventanas emergentes para este portal.");
       }
     }
   },
