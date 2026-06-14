@@ -588,16 +588,14 @@ const UI = {
       unified = unified.filter(m => m.metodoPago === filterMet);
     }
 
-    // Filtrar por Rango de Fechas
-    const fechaDesde = document.getElementById("trans-filter-fecha-desde")?.value;
-    const fechaHasta = document.getElementById("trans-filter-fecha-hasta")?.value;
-    if (fechaDesde) {
-      const desde = new Date(fechaDesde + "T00:00:00");
-      unified = unified.filter(m => new Date(m.fecha) >= desde);
+    // Filtrar por Mes y Año
+    const filterMes = document.getElementById("trans-filter-mes")?.value || "todos";
+    const filterAnio = document.getElementById("trans-filter-anio")?.value || "todos";
+    if (filterMes !== "todos") {
+      unified = unified.filter(m => new Date(m.fecha).getMonth() === parseInt(filterMes));
     }
-    if (fechaHasta) {
-      const hasta = new Date(fechaHasta + "T23:59:59");
-      unified = unified.filter(m => new Date(m.fecha) <= hasta);
+    if (filterAnio !== "todos") {
+      unified = unified.filter(m => new Date(m.fecha).getFullYear() === parseInt(filterAnio));
     }
 
     if (unified.length === 0) {
@@ -692,17 +690,7 @@ const UI = {
       filteredEgresos = filteredEgresos.filter(e => new Date(e.fecha).getFullYear() === parseInt(anioFiltro));
     }
 
-    // Filtrar por Rango de Fechas (Desde / Hasta)
-    const egresoDesde = document.getElementById("egreso-filter-fecha-desde")?.value;
-    const egresoHasta = document.getElementById("egreso-filter-fecha-hasta")?.value;
-    if (egresoDesde) {
-      const desde = new Date(egresoDesde + "T00:00:00");
-      filteredEgresos = filteredEgresos.filter(e => new Date(e.fecha) >= desde);
-    }
-    if (egresoHasta) {
-      const hasta = new Date(egresoHasta + "T23:59:59");
-      filteredEgresos = filteredEgresos.filter(e => new Date(e.fecha) <= hasta);
-    }
+    // El rango de fechas Desde/Hasta ha sido eliminado y reemplazado por filtros de Mes y Año en una sola barra
 
     // Determinar nivel de acceso actual
     const rol = App.currentUser ? App.currentUser.rol : "Consulta";
@@ -1173,8 +1161,8 @@ const UI = {
   },
 
   resetFiltrosIngresos() {
-    const mesSelect = document.getElementById("filtro-ingreso-mes");
-    const anioSelect = document.getElementById("filtro-ingreso-anio");
+    const mesSelect = document.getElementById("trans-filter-mes");
+    const anioSelect = document.getElementById("trans-filter-anio");
     if (mesSelect) mesSelect.value = "todos";
     if (anioSelect) anioSelect.value = "todos";
     this.renderIngresos();
@@ -1189,24 +1177,30 @@ const UI = {
   },
 
   /**
-   * Limpiar los filtros de fecha del Libro Diario
+   * Limpiar los filtros de período del Libro Diario
    */
-  limpiarFiltroFechas() {
-    const desde = document.getElementById("trans-filter-fecha-desde");
-    const hasta = document.getElementById("trans-filter-fecha-hasta");
-    if (desde) desde.value = "";
-    if (hasta) hasta.value = "";
+  limpiarFiltroMesAnioIngresos() {
+    const mesSelect = document.getElementById("trans-filter-mes");
+    const anioSelect = document.getElementById("trans-filter-anio");
+    const searchInput = document.getElementById("trans-search");
+    const catSelect = document.getElementById("trans-filter-categoria");
+    const metSelect = document.getElementById("trans-filter-metodo");
+    if (mesSelect) mesSelect.value = "todos";
+    if (anioSelect) anioSelect.value = "todos";
+    if (searchInput) searchInput.value = "";
+    if (catSelect) catSelect.value = "todos";
+    if (metSelect) metSelect.value = "todos";
     this.renderIngresos();
   },
 
   /**
-   * Limpiar filtros de fecha de Egresos
+   * Limpiar filtros de período de Egresos
    */
-  limpiarFiltroFechasEgresos() {
-    const desde = document.getElementById("egreso-filter-fecha-desde");
-    const hasta = document.getElementById("egreso-filter-fecha-hasta");
-    if (desde) desde.value = "";
-    if (hasta) hasta.value = "";
+  limpiarFiltroMesAnioEgresos() {
+    const mesSelect = document.getElementById("filtro-egreso-mes");
+    const anioSelect = document.getElementById("filtro-egreso-anio");
+    if (mesSelect) mesSelect.value = "todos";
+    if (anioSelect) anioSelect.value = "todos";
     this.renderEgresos();
   }
 };

@@ -90,8 +90,8 @@ const App = {
     if (selCajaMes) selCajaMes.value = currentMonth;
     if (selCajaAnio) selCajaAnio.value = currentYear;
 
-    const selIngresoMes = document.getElementById("filtro-ingreso-mes");
-    const selIngresoAnio = document.getElementById("filtro-ingreso-anio");
+    const selIngresoMes = document.getElementById("trans-filter-mes");
+    const selIngresoAnio = document.getElementById("trans-filter-anio");
     if (selIngresoMes) selIngresoMes.value = currentMonth;
     if (selIngresoAnio) selIngresoAnio.value = currentYear;
 

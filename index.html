@@ -456,22 +456,39 @@
           </select>
         </div>
 
-        <!-- Filtro de Rango de Fechas -->
-        <div class="date-range-bar">
+        <!-- Filtro de Mes y Año para Ingresos -->
+        <div class="date-range-bar" style="border-radius: 0 0 12px 12px; margin-bottom: 20px;">
           <div style="display: flex; align-items: center; gap: 6px;">
-            <i data-lucide="calendar-range" style="width:15px; height:15px; color: var(--primary);"></i>
-            <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Rango de Fechas:</span>
+            <i data-lucide="calendar" style="width:15px; height:15px; color: var(--primary);"></i>
+            <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Filtrar por Período:</span>
           </div>
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <label style="font-size: 12px; color: var(--text-muted);">Desde:</label>
-            <input type="date" id="trans-filter-fecha-desde" onchange="UI.renderIngresos()" style="background: var(--bg-card); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 6px; padding: 5px 10px; font-size: 12.5px; outline: none; cursor: pointer;">
-          </div>
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <label style="font-size: 12px; color: var(--text-muted);">Hasta:</label>
-            <input type="date" id="trans-filter-fecha-hasta" onchange="UI.renderIngresos()" style="background: var(--bg-card); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 6px; padding: 5px 10px; font-size: 12.5px; outline: none; cursor: pointer;">
-          </div>
-          <button onclick="UI.limpiarFiltroFechas()" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: var(--danger); border-radius: 6px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-            <i data-lucide="x" style="width:13px; height:13px;"></i> Limpiar
+          <select id="trans-filter-mes" class="select-premium" style="width: 150px; background: var(--bg-card); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 6px; padding: 5px 10px; font-size: 12.5px; outline: none; cursor: pointer;">
+            <option value="todos" selected>Todos los Meses</option>
+            <option value="0">Enero</option>
+            <option value="1">Febrero</option>
+            <option value="2">Marzo</option>
+            <option value="3">Abril</option>
+            <option value="4">Mayo</option>
+            <option value="5">Junio</option>
+            <option value="6">Julio</option>
+            <option value="7">Agosto</option>
+            <option value="8">Septiembre</option>
+            <option value="9">Octubre</option>
+            <option value="10">Noviembre</option>
+            <option value="11">Diciembre</option>
+          </select>
+          <select id="trans-filter-anio" class="select-premium" style="width: 120px; background: var(--bg-card); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 6px; padding: 5px 10px; font-size: 12.5px; outline: none; cursor: pointer;">
+            <option value="todos" selected>Todos los Años</option>
+            <option value="2024">2024</option>
+            <option value="2025">2025</option>
+            <option value="2026">2026</option>
+            <option value="2027">2027</option>
+          </select>
+          <button onclick="UI.renderIngresos()" class="btn-primary" style="width: auto; padding: 6px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); border: none; color: #fff; box-shadow: 0 4px 12px var(--primary-glow);">
+            <i data-lucide="search" style="width:13px; height:13px;"></i> Buscar
+          </button>
+          <button onclick="UI.limpiarFiltroMesAnioIngresos()" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: var(--danger); border-radius: 6px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+            <i data-lucide="x" style="width:13px; height:13px;"></i> Limpiar filtros
           </button>
         </div>
         
@@ -508,12 +525,12 @@
         </div>
 
         <!-- Filtros de Fecha para Egresos -->
-        <div class="filters-bar">
+        <div class="filters-bar" style="margin-bottom: 20px;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <i data-lucide="calendar" style="color: var(--danger); width: 16px; height: 16px;"></i>
             <span style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Filtrar por Mes/Año:</span>
           </div>
-          <select id="filtro-egreso-mes" class="select-premium" onchange="UI.renderEgresos()" style="width: 150px; background: var(--bg-card); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 6px; padding: 6px 10px; font-size: 13px; outline: none; cursor: pointer;">
+          <select id="filtro-egreso-mes" class="select-premium" style="width: 150px; background: var(--bg-card); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 6px; padding: 6px 10px; font-size: 13px; outline: none; cursor: pointer;">
             <option value="todos" selected>Todos los Meses</option>
             <option value="0">Enero</option>
             <option value="1">Febrero</option>
@@ -528,37 +545,24 @@
             <option value="10">Noviembre</option>
             <option value="11">Diciembre</option>
           </select>
-          <select id="filtro-egreso-anio" class="select-premium" onchange="UI.renderEgresos()" style="width: 120px; background: var(--bg-card); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 6px; padding: 6px 10px; font-size: 13px; outline: none; cursor: pointer;">
+          <select id="filtro-egreso-anio" class="select-premium" style="width: 120px; background: var(--bg-card); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 6px; padding: 6px 10px; font-size: 13px; outline: none; cursor: pointer;">
             <option value="todos" selected>Todos los Años</option>
             <option value="2024">2024</option>
             <option value="2025">2025</option>
             <option value="2026">2026</option>
             <option value="2027">2027</option>
           </select>
+          <button onclick="UI.renderEgresos()" class="btn-primary" style="width: auto; padding: 6px 16px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; background: linear-gradient(135deg, var(--danger), var(--danger-hover)); border: none; color: #fff; box-shadow: 0 4px 12px var(--danger-glow);">
+            <i data-lucide="search" style="width:13px; height:13px;"></i> Buscar
+          </button>
+          <button onclick="UI.limpiarFiltroMesAnioEgresos()" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: var(--danger); border-radius: 6px; padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+            <i data-lucide="x" style="width:13px; height:13px;"></i> Limpiar filtros
+          </button>
           <button id="btn-print-egresos" class="btn-secondary" onclick="App.printEgresosReport()" style="display:flex; align-items:center; gap:6px; padding:6px 12px; font-size:13px; border-radius:6px; border: 1px solid var(--card-border); background: var(--bg-card); color: var(--text-primary); cursor:pointer; margin-left:auto; transition: all 0.2s ease;">
             <i data-lucide="printer" style="color:var(--success); width: 14px; height: 14px;"></i> Imprimir libro de egresos
           </button>
           <button class="btn-secondary" onclick="ReceiptManager.generateLibroPDF(document.getElementById('filtro-egreso-mes').value, document.getElementById('filtro-egreso-anio').value)" style="display:flex; align-items:center; gap:6px; padding:6px 12px; font-size:13px; border-radius:6px; border: 1px solid var(--card-border); background: var(--bg-card); color: var(--text-primary); cursor:pointer; transition: all 0.2s ease;">
             <i data-lucide="printer" style="color:var(--warning); width: 14px; height: 14px;"></i> Imprimir Libro PDF
-          </button>
-        </div>
-
-        <!-- Filtro de Rango de Fechas para Egresos -->
-        <div class="date-range-bar">
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <i data-lucide="calendar-range" style="width:15px; height:15px; color: var(--danger);"></i>
-            <span style="font-size: 12.5px; font-weight: 600; color: var(--text-secondary);">Rango de Fechas:</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <label style="font-size: 12px; color: var(--text-muted);">Desde:</label>
-            <input type="date" id="egreso-filter-fecha-desde" onchange="UI.renderEgresos()" style="background: var(--bg-card); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 6px; padding: 5px 10px; font-size: 12.5px; outline: none; cursor: pointer;">
-          </div>
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <label style="font-size: 12px; color: var(--text-muted);">Hasta:</label>
-            <input type="date" id="egreso-filter-fecha-hasta" onchange="UI.renderEgresos()" style="background: var(--bg-card); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 6px; padding: 5px 10px; font-size: 12.5px; outline: none; cursor: pointer;">
-          </div>
-          <button onclick="UI.limpiarFiltroFechasEgresos()" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: var(--danger); border-radius: 6px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-            <i data-lucide="x" style="width:13px; height:13px;"></i> Limpiar
           </button>
         </div>
         
