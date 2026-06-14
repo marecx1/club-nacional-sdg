@@ -70,7 +70,7 @@ const ReceiptManager = {
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(18);
-    doc.text("CLUB NACIONAL ODS", 44, 14);
+    doc.text("CLUB NACIONAL SDG", 44, 14);
     
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.5);
@@ -85,7 +85,7 @@ const ReceiptManager = {
     doc.setTextColor(100, 116, 139);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
-    doc.text("CLUB NACIONAL ODS • Saltos del Guairá - Sistema de Gestión Club Manager Pro PY", 15, 284);
+    doc.text("CLUB NACIONAL SDG • Saltos del Guairá - Sistema de Gestión Club Manager Pro PY", 15, 284);
     doc.text(`Página ${pageNumber} de ${totalPages}`, 180, 284);
   },
 
@@ -192,7 +192,7 @@ const ReceiptManager = {
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(17);
-    doc.text("CLUB NACIONAL ODS", 40, 15);
+    doc.text("CLUB NACIONAL SDG", 40, 15);
 
     // Subtítulo y ciudad
     doc.setFont("helvetica", "normal");
@@ -325,7 +325,7 @@ const ReceiptManager = {
     doc.setTextColor(100, 116, 139);
     doc.setFont("helvetica", "italic");
     doc.setFontSize(8);
-    doc.text("Este comprobante constituye un recibo oficial de cobro emitido por la administración de CLUB NACIONAL ODS.", 15, 165);
+    doc.text("Este comprobante constituye un recibo oficial de cobro emitido por la administración de CLUB NACIONAL SDG.", 15, 165);
     doc.text("Gracias por su aporte y puntualidad en las cuotas sociales.", 15, 169);
 
     // =======================================================================
@@ -342,8 +342,8 @@ const ReceiptManager = {
     doc.text("CAJA VALIDADA", 28, 186);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7.5);
-    doc.text("CLUB NACIONAL ODS", 25, 191);
-    doc.text(`REF: CNODS-${String(ingreso.id).padStart(6,"0")}`, 28, 196);
+    doc.text("CLUB NACIONAL SDG", 25, 191);
+    doc.text(`REF: CNSDG-${String(ingreso.id).padStart(6,"0")}`, 28, 196);
 
     // Firma
     doc.setDrawColor(148, 163, 184);
@@ -359,13 +359,13 @@ const ReceiptManager = {
     doc.line(15, 207, 195, 207);
     doc.setTextColor(148, 163, 184);
     doc.setFontSize(7);
-    doc.text("CLUB NACIONAL ODS • Saltos del Guairá, Canindeyú, Paraguay • Sistema Club Manager Pro PY", 15, 212);
+    doc.text("CLUB NACIONAL SDG • Saltos del Guairá, Canindeyú, Paraguay • Sistema Club Manager Pro PY", 15, 212);
 
     // =======================================================================
     // GUARDAR / DESCARGAR PDF
     // =======================================================================
     try {
-      doc.save(`Recibo_CNODS_${String(ingreso.id).padStart(6, "0")}.pdf`);
+      doc.save(`Recibo_CNSDG_${String(ingreso.id).padStart(6, "0")}.pdf`);
     } catch (saveError) {
       console.warn("doc.save() bloqueado, intentando abrir en nueva pestaña:", saveError);
       try {

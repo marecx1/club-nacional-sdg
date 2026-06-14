@@ -145,7 +145,7 @@ const NotificationService = {
     if (!this.permissionGranted || !("Notification" in window)) return;
 
     try {
-      const browserNotif = new Notification(`CLUB NACIONAL ODS - ${notif.title}`, {
+      const browserNotif = new Notification(`CLUB NACIONAL SDG - ${notif.title}`, {
         body: notif.message,
         icon: "img/logo.jpg",
         badge: "img/logo.jpg",
