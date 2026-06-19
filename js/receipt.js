@@ -308,9 +308,231 @@ const ReceiptManager = {
     doc.setFontSize(8.5);
     doc.text("Firma del Responsable / Tesorero", 137, 193);
 
+    }
+  },
+
+  /**
+   * Generar y descargar un comprobante de egreso PDF
+   * @param {Object} egreso Objeto de egreso desde la base de datos
+   */
+  async generateEgresoPDF(egreso) {
+    const jsPDFClass = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+    if (!jsPDFClass) {
+      console.error("jsPDF CDN no se ha cargado correctamente.");
+      alert("Error: El generador de PDF no está listo. Verifica tu conexión a internet para cargar la librería de impresión.");
+      return;
+    }
+
+    const doc = new jsPDFClass({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4"
+    });
+
+    const formatCurrency = (val) => {
+      const formatted = new Intl.NumberFormat("es-PY", { minimumFractionDigits: 0 }).format(val);
+      return `Gs. ${formatted}`;
+    };
+
+    const users = DB.get("usuarios", []);
+    const matchingUser = users.find(u => u.usuario === egreso.usuario);
+    const userDisplay = matchingUser ? matchingUser.nombre : egreso.usuario;
+
+    const catLabels = {
+      cuotas: "CUOTAS",
+      alquiler_canchas: "ALQUILER",
+      cantina: "CANTINA",
+      eventos: "EVENTOS/TORNEOS",
+      rifas: "RIFAS",
+      mantenimiento: "MANTENIMIENTO",
+      arbitraje: "ARBITRAJE",
+      salarios: "SALARIOS",
+      luz: "ANDE - LUZ",
+      agua: "ESSAP - AGUA",
+      compras: "INSUMOS",
+      otros: "OTROS"
+    };
+    const categoriaLabel = catLabels[egreso.categoria] || egreso.categoria.toUpperCase();
+
+    // Carga de logo asíncrona
+    const logoImg = await this.loadLogo();
+
+    // --- ESTILIZACIÓN DEL RECIBO PREMIUM ---
+    
+    // 1. Fondos y Marcos Geométricos
+    doc.setFillColor(179, 0, 0); // Rojo Club
+    doc.rect(0, 0, 210, 38, "F");
+    
+    doc.setFillColor(16, 185, 129); // Línea verde de acento
+    doc.rect(0, 38, 210, 1.5, "F");
+
+    // 2. Logo y Encabezado del Recibo
+    doc.setFillColor(255, 255, 255);
+    doc.ellipse(25, 19, 13, 13, "F"); // Círculo blanco de fondo para logo
+    if (logoImg) {
+      doc.addImage(logoImg, "JPEG", 14, 8, 22, 22);
+    }
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text("CLUB NACIONAL SDG", 42, 14);
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.text("ADMINISTRACIÓN Y CONTABILIDAD DEPORTIVA", 42, 20);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("Saltos del Guairá, Canindeyú • Paraguay", 42, 26);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.text("RUC Nº: 800234190-2 • Personería Jurídica Nº 1248/1974 • Fund. 02/02/1975", 42, 32);
+    
+    // Cuadro del Comprobante Nº (Diseño con cabecera roja redondeada)
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(145, 6, 50, 28, 3, 3, "F"); // Fondo blanco redondeado
+    
+    doc.setFillColor(179, 0, 0);
+    doc.roundedRect(145, 6, 50, 10, 3, 3, "F"); // Encabezado rojo redondeado superior
+    doc.rect(145, 11, 50, 5, "F"); // Extensión plana inferior del encabezado
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(7.5);
+    doc.text("ORDEN DE PAGO", 170, 12.5, { align: "center" });
+    
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text(`EXP-${String(egreso.id).padStart(6, '0')}`, 170, 22, { align: "center" });
+    
+    // Línea roja divisoria
+    doc.setDrawColor(179, 0, 0);
+    doc.setLineWidth(0.5);
+    doc.line(152, 25, 188, 25);
+    
+    // Icono de calendario vectorizado
+    doc.setDrawColor(179, 0, 0);
+    doc.setFillColor(255, 255, 255);
+    doc.rect(154, 27.5, 4, 4, "FD");
+    doc.setFillColor(179, 0, 0);
+    doc.rect(154, 27.5, 4, 1, "F");
+    doc.setDrawColor(179, 0, 0);
+    doc.line(155.2, 29.5, 155.2, 30.5);
+    doc.line(156.8, 29.5, 156.8, 30.5);
+    
+    // Fecha de emisión
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.text(`Fecha: ${new Date(egreso.fecha).toLocaleDateString("es-PY")}`, 160, 30.8);
+
+    // 3. Detalles de Emisión (Fecha y Operador)
+    doc.setTextColor(100, 116, 139);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    const fechaFormat = new Date(egreso.fecha).toLocaleString("es-PY");
+    doc.text(`Fecha y Hora de Emisión: ${fechaFormat}`, 15, 48);
+    doc.text(`Operador de Caja: ${userDisplay.toUpperCase()}`, 15, 53);
+
+    // Línea divisoria
+    doc.setDrawColor(226, 232, 240);
+    doc.setLineWidth(0.5);
+    doc.line(15, 57, 195, 57);
+
+    // 4. Datos del Egreso
+    doc.setTextColor(11, 18, 34);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("DATOS DE LA ORDEN DE EGRESO / GASTO", 15, 65);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Concepto del Gasto:`, 15, 73);
+    doc.setFont("helvetica", "bold");
+    doc.text(`${egreso.concepto}`, 50, 73);
+
+    doc.setFont("helvetica", "normal");
+    doc.text(`Clase / Categoría:`, 15, 79);
+    doc.setFont("helvetica", "bold");
+    doc.text(`${categoriaLabel}`, 50, 79);
+
+    doc.setFont("helvetica", "normal");
+    doc.text(`Forma de Pago:`, 15, 85);
+    doc.setFont("helvetica", "bold");
+    doc.text(`${egreso.comprobante || "Efectivo"}`, 50, 85);
+
+    // 5. Tabla de Transacción (Diseño Corporativo)
+    doc.setFillColor(241, 245, 249);
+    doc.rect(15, 95, 180, 10, "F");
+    
+    doc.setTextColor(71, 85, 105);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("CONCEPTO / DETALLE DE GASTO", 20, 101);
+    doc.text("TIPO COMPROBANTE", 130, 101);
+    doc.text("SUBTOTAL", 165, 101);
+
+    // Cuerpo de la tabla
+    doc.setTextColor(15, 23, 42);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`${egreso.concepto}`, 20, 113);
+    doc.text(`${egreso.comprobante || "Efectivo"}`, 130, 113);
+    
+    doc.setFont("helvetica", "bold");
+    doc.text(`${formatCurrency(egreso.monto)}`, 165, 113);
+
+    // Línea final de tabla
+    doc.line(15, 120, 195, 120);
+
+    // Total General Box
+    doc.setFillColor(241, 245, 249);
+    doc.roundedRect(125, 126, 70, 15, 1, 1, "F");
+
+    doc.setTextColor(11, 18, 34);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text("TOTAL LIQUIDADO:", 127, 135);
+    doc.setTextColor(220, 38, 38); // Rojo de salida para egresos
+    doc.setFontSize(13);
+    doc.text(`${formatCurrency(egreso.monto)}`, 165, 135);
+
+    // 6. Mensaje de Agradecimiento e Información Legal
+    doc.setTextColor(100, 116, 139);
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(8.5);
+    doc.text("En señal de conformidad del egreso respectivo, emitimos este recibo válido para control de caja diario social.", 15, 160);
+
+    // 7. Firmas y Sello de Validación
+    // Sello Digital de Caja
+    doc.setDrawColor(220, 38, 38); // Rojo para egresos
+    doc.setLineWidth(0.8);
+    doc.roundedRect(25, 175, 45, 20, 2, 2, "D");
+    
+    doc.setTextColor(220, 38, 38);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("CAJA VALIDADA", 32, 182);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.text("CLUB NACIONAL SDG", 29, 187);
+    doc.setFontSize(7);
+    doc.text(`REF: CNSDG-EXP-${egreso.id}`, 34, 192);
+
+    // Firma del Cajero
+    doc.setDrawColor(148, 163, 184);
+    doc.setLineWidth(0.5);
+    doc.line(130, 188, 185, 188);
+    
+    doc.setTextColor(71, 85, 105);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.text("Firma del Responsable / Tesorero", 137, 193);
+
     // Guardar / Descargar PDF con fallback robusto
     try {
-      doc.save(`Recibo_CNSDG_${String(ingreso.id).padStart(6, '0')}.pdf`);
+      doc.save(`Egreso_CNSDG_${String(egreso.id).padStart(6, '0')}.pdf`);
     } catch (saveError) {
       console.warn("doc.save() bloqueado o falló, intentando abrir en nueva pestaña:", saveError);
       try {

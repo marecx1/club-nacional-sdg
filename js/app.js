@@ -1239,7 +1239,7 @@ const App = {
           const socio = socios.find(s => s.id === parseInt(record.socioId));
           ReceiptManager.generatePDF(record, socio);
         } else {
-          ReceiptManager.generatePDF(record);
+          ReceiptManager.generateEgresoPDF(record);
         }
       });
     }
