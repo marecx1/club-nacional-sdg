@@ -56,12 +56,16 @@ const ReceiptManager = {
    * @param {number} totalPages Total de páginas en el documento
    */
   addHeaderFooter(doc, logoImg, pageNumber, totalPages) {
-    // 1. Cabecera Institucional en cada página (Azul Medianoche y Verde)
-    doc.setFillColor(11, 18, 34); // Azul Medianoche
+    // 1. Cabecera Institucional en cada página (Rojo Club y Verde)
+    doc.setFillColor(179, 0, 0); // Rojo Club
     doc.rect(0, 0, 210, 32, "F");
     
     doc.setFillColor(16, 185, 129); // Línea verde de acento
     doc.rect(0, 32, 210, 1.5, "F");
+
+    // Círculo blanco detrás del logo
+    doc.setFillColor(255, 255, 255);
+    doc.ellipse(26, 16, 12, 12, "F");
 
     if (logoImg) {
       doc.addImage(logoImg, "JPEG", 15, 5, 22, 22);
@@ -110,7 +114,7 @@ const ReceiptManager = {
 
     const formatCurrency = (val) => {
       const formatted = new Intl.NumberFormat("es-PY", { minimumFractionDigits: 0 }).format(val);
-      return `₲ ${formatted}`;
+      return `Gs. ${formatted}`;
     };
 
     let socioNombre = "Cliente Ocasional / General";
@@ -133,38 +137,72 @@ const ReceiptManager = {
     // --- ESTILIZACIÓN DEL RECIBO PREMIUM ---
     
     // 1. Fondos y Marcos Geométricos
-    doc.setFillColor(11, 18, 34); // Azul Medianoche
+    doc.setFillColor(179, 0, 0); // Rojo Club
     doc.rect(0, 0, 210, 38, "F");
     
     doc.setFillColor(16, 185, 129); // Línea verde de acento
-    doc.rect(0, 38, 210, 2, "F");
+    doc.rect(0, 38, 210, 1.5, "F");
 
     // 2. Logo y Encabezado del Recibo
+    doc.setFillColor(255, 255, 255);
+    doc.ellipse(25, 19, 13, 13, "F"); // Círculo blanco de fondo para logo
     if (logoImg) {
-      doc.addImage(logoImg, "JPEG", 15, 7, 24, 24);
+      doc.addImage(logoImg, "JPEG", 14, 8, 22, 22);
     }
 
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.text("CLUB NACIONAL SDG", 44, 16);
+    doc.setFontSize(18);
+    doc.text("CLUB NACIONAL SDG", 42, 14);
     
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.text("ADMINISTRACIÓN Y CONTABILIDAD DEPORTIVA", 44, 22);
-    doc.text("Saltos del Guairá, Paraguay", 44, 27);
-    
-    // Cuadro del Recibo Nº
-    doc.setFillColor(255, 255, 255);
-    doc.roundedRect(145, 8, 50, 22, 2, 2, "F");
-    
-    doc.setTextColor(11, 18, 34);
+    doc.setFontSize(8.5);
+    doc.text("ADMINISTRACIÓN Y CONTABILIDAD DEPORTIVA", 42, 20);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.text("RECIBO DE COBRO", 150, 14);
-    doc.setFontSize(13);
-    doc.setTextColor(37, 99, 235); // Azul principal
-    doc.text(`Nº 001-${String(ingreso.id).padStart(6, '0')}`, 150, 24);
+    doc.setFontSize(9);
+    doc.text("Saltos del Guairá, Canindeyú • Paraguay", 42, 26);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.text("RUC Nº: 800234190-2 • Personería Jurídica Nº 1248/1974 • Fund. 02/02/1975", 42, 32);
+    
+    // Cuadro del Recibo Nº (Diseño con cabecera roja redondeada)
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(145, 6, 50, 28, 3, 3, "F"); // Fondo blanco redondeado
+    
+    doc.setFillColor(179, 0, 0);
+    doc.roundedRect(145, 6, 50, 10, 3, 3, "F"); // Encabezado rojo redondeado superior
+    doc.rect(145, 11, 50, 5, "F"); // Extensión plana inferior del encabezado
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.text("RECIBO DE COBRO", 170, 12.5, { align: "center" });
+    
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text(`Nº 001-${String(ingreso.id).padStart(6, '0')}`, 170, 22, { align: "center" });
+    
+    // Línea roja divisoria
+    doc.setDrawColor(179, 0, 0);
+    doc.setLineWidth(0.5);
+    doc.line(152, 25, 188, 25);
+    
+    // Icono de calendario vectorizado
+    doc.setDrawColor(179, 0, 0);
+    doc.setFillColor(255, 255, 255);
+    doc.rect(154, 27.5, 4, 4, "FD");
+    doc.setFillColor(179, 0, 0);
+    doc.rect(154, 27.5, 4, 1, "F");
+    doc.setDrawColor(179, 0, 0);
+    doc.line(155.2, 29.5, 155.2, 30.5);
+    doc.line(156.8, 29.5, 156.8, 30.5);
+    
+    // Fecha de emisión
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.text(`Fecha: ${new Date(ingreso.fecha).toLocaleDateString("es-PY")}`, 160, 30.8);
 
     // 3. Detalles de Emisión (Fecha y Operador)
     doc.setTextColor(100, 116, 139);
