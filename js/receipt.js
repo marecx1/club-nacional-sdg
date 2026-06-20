@@ -308,6 +308,18 @@ const ReceiptManager = {
     doc.setFontSize(8.5);
     doc.text("Firma del Responsable / Tesorero", 137, 193);
 
+    // Guardar / Descargar PDF con fallback robusto
+    try {
+      doc.save(`Recibo_CNSDG_${String(ingreso.id).padStart(6, '0')}.pdf`);
+    } catch (saveError) {
+      console.warn("doc.save() bloqueado o falló, intentando abrir en nueva pestaña:", saveError);
+      try {
+        const blobUrl = doc.output('bloburl');
+        window.open(blobUrl, '_blank');
+      } catch (blobError) {
+        console.error("Fallo al abrir blob url:", blobError);
+        alert("El navegador bloqueó la descarga automática. Por favor, permite las descargas y ventanas emergentes para este portal.");
+      }
     }
   },
 
