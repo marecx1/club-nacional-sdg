@@ -56,15 +56,24 @@ const ReceiptManager = {
    * @param {number} totalPages Total de páginas en el documento
    */
   addHeaderFooter(doc, logoImg, pageNumber, totalPages) {
-    // 1. Cabecera Institucional en cada página (Azul Medianoche y Verde)
-    doc.setFillColor(11, 18, 34); // Azul Medianoche
+    // 1. Cabecera Institucional en cada página (Azul Marino, Rojo y Dorado)
+    doc.setFillColor(11, 31, 58); // Azul Marino (#0B1F3A)
     doc.rect(0, 0, 210, 32, "F");
     
-    doc.setFillColor(16, 185, 129); // Línea verde de acento
-    doc.rect(0, 32, 210, 1.5, "F");
+    doc.setFillColor(179, 0, 0); // Línea roja de acento
+    doc.rect(0, 32, 210, 1.2, "F");
+    doc.setFillColor(197, 168, 128); // Línea dorada de acento
+    doc.rect(0, 33.2, 210, 0.8, "F");
+
+    // Círculo blanco detrás del logo con borde dorado
+    doc.setFillColor(255, 255, 255);
+    doc.ellipse(26, 16, 12, 12, "F");
+    doc.setDrawColor(197, 168, 128);
+    doc.setLineWidth(0.6);
+    doc.ellipse(26, 16, 12, 12, "D");
 
     if (logoImg) {
-      doc.addImage(logoImg, "JPEG", 15, 5, 22, 22);
+      doc.addImage(logoImg, "JPEG", 15.5, 5.5, 21, 21);
     }
 
     doc.setTextColor(255, 255, 255);
@@ -72,9 +81,12 @@ const ReceiptManager = {
     doc.setFontSize(18);
     doc.text("CLUB NACIONAL SDG", 44, 14);
     
+    doc.setTextColor(197, 168, 128); // Dorado
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.5);
     doc.text("BALANCE GENERAL Y ESTADO DE CUENTAS INSTITUCIONALES", 44, 20);
+    
+    doc.setTextColor(255, 255, 255);
     doc.text("Asunción, Paraguay • Gestión Deportiva y Social", 44, 25);
 
     // 2. Pie de página en cada página
@@ -110,7 +122,7 @@ const ReceiptManager = {
 
     const formatCurrency = (val) => {
       const formatted = new Intl.NumberFormat("es-PY", { minimumFractionDigits: 0 }).format(val);
-      return `₲ ${formatted}`;
+      return `Gs. ${formatted}`;
     };
 
     let socioNombre = "Cliente Ocasional / General";
@@ -132,47 +144,108 @@ const ReceiptManager = {
 
     // --- ESTILIZACIÓN DEL RECIBO PREMIUM ---
     
-    // 1. Fondos y Marcos Geométricos
-    doc.setFillColor(11, 18, 34); // Azul Medianoche
+    // 1. Fondos y Marcos Geométricos (Azul Marino y Acentos)
+    doc.setFillColor(11, 31, 58); // Azul Marino (#0B1F3A)
     doc.rect(0, 0, 210, 38, "F");
     
-    doc.setFillColor(16, 185, 129); // Línea verde de acento
-    doc.rect(0, 38, 210, 2, "F");
+    // Líneas divisoria inferior (Rojo institucional y Dorado)
+    doc.setFillColor(179, 0, 0); // Rojo Club
+    doc.rect(0, 38, 210, 1.2, "F");
+    doc.setFillColor(197, 168, 128); // Dorado
+    doc.rect(0, 39.2, 210, 0.8, "F");
 
-    // 2. Logo y Encabezado del Recibo
+    // 2. Logo y Encabezado del Recibo (Círculo blanco con borde dorado)
+    doc.setFillColor(255, 255, 255);
+    doc.ellipse(25, 19, 13, 13, "F");
+    doc.setDrawColor(197, 168, 128);
+    doc.setLineWidth(0.6);
+    doc.ellipse(25, 19, 13, 13, "D");
     if (logoImg) {
-      doc.addImage(logoImg, "JPEG", 15, 7, 24, 24);
+      doc.addImage(logoImg, "JPEG", 14.5, 8.5, 21, 21);
     }
 
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.text("CLUB NACIONAL SDG", 44, 16);
+    doc.setFontSize(18);
+    doc.text("CLUB NACIONAL SDG", 42, 14);
+    
+    doc.setTextColor(197, 168, 128); // Dorado
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.text("ADMINISTRACIÓN Y CONTABILIDAD DEPORTIVA", 42, 20);
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("Asunción, Paraguay", 42, 26);
     
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.text("ADMINISTRACIÓN Y CONTABILIDAD DEPORTIVA", 44, 22);
-    doc.text("Asunción, Paraguay", 44, 27);
+    doc.setFontSize(7.5);
+    doc.text("RUC Nº: 800234190-2 • Personería Jurídica Nº 1248/1974 • Fund. 02/02/1975", 42, 32);
     
-    // Cuadro del Recibo Nº
+    // Cuadro del Recibo Nº (Diseño premium con cabecera oscura y borde dorado)
     doc.setFillColor(255, 255, 255);
-    doc.roundedRect(145, 8, 50, 22, 2, 2, "F");
+    doc.setDrawColor(197, 168, 128);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(145, 6, 50, 28, 3, 3, "FD"); // Caja fondo blanco
     
-    doc.setTextColor(11, 18, 34);
+    doc.setFillColor(11, 31, 58); // Cabecera oscura
+    doc.roundedRect(145, 6, 50, 10, 3, 3, "F");
+    doc.rect(145, 11, 50, 5, "F"); // Parte plana inferior
+    
+    doc.setTextColor(197, 168, 128); // Texto Dorado
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.text("RECIBO DE COBRO", 150, 14);
-    doc.setFontSize(13);
-    doc.setTextColor(37, 99, 235); // Azul principal
-    doc.text(`Nº 001-${String(ingreso.id).padStart(6, '0')}`, 150, 24);
+    doc.setFontSize(8.5);
+    doc.text("RECIBO DE COBRO", 170, 12.5, { align: "center" });
+    
+    doc.setTextColor(11, 31, 58);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text(`Nº 001-${String(ingreso.id).padStart(6, '0')}`, 170, 22, { align: "center" });
+    
+    // Línea divisoria en cuadro
+    doc.setDrawColor(197, 168, 128);
+    doc.setLineWidth(0.5);
+    doc.line(152, 25, 188, 25);
+    
+    // Icono calendario vectorizado y fecha
+    doc.setDrawColor(179, 0, 0);
+    doc.setFillColor(255, 255, 255);
+    doc.rect(154, 27.5, 4, 4, "FD");
+    doc.setFillColor(179, 0, 0);
+    doc.rect(154, 27.5, 4, 1, "F");
+    doc.setDrawColor(179, 0, 0);
+    doc.line(155.2, 29.5, 155.2, 30.5);
+    doc.line(156.8, 29.5, 156.8, 30.5);
+    
+    doc.setTextColor(11, 31, 58);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.text(`Fecha: ${new Date(ingreso.fecha).toLocaleDateString("es-PY")}`, 160, 30.8);
 
-    // 3. Detalles de Emisión (Fecha y Operador)
+    // 3. Detalles de Emisión (Fecha, Operador y Método con iconos vectorizados)
+    const fechaFormat = new Date(ingreso.fecha).toLocaleString("es-PY");
+    const metodoPagoClean = ingreso.metodoPago || "Efectivo";
+
+    // Icono Calendario
+    doc.setDrawColor(11, 31, 58);
+    doc.setFillColor(255, 255, 255);
+    doc.rect(15, 45, 3.5, 3.5, "FD");
+    doc.setFillColor(11, 31, 58);
+    doc.rect(15, 45, 3.5, 0.8, "F");
     doc.setTextColor(100, 116, 139);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    const fechaFormat = new Date(ingreso.fecha).toLocaleString("es-PY");
-    doc.text(`Fecha y Hora de Emisión: ${fechaFormat}`, 15, 48);
-    doc.text(`Operador de Caja: ${ingreso.usuario.toUpperCase()}`, 15, 53);
+    doc.setFontSize(8.5);
+    doc.text(`Fecha de Emisión: ${fechaFormat}`, 20, 48);
+
+    // Icono Usuario
+    doc.setFillColor(11, 31, 58);
+    doc.ellipse(16.7, 51.7, 1, 1, "F"); // Cabeza
+    doc.setDrawColor(11, 31, 58);
+    doc.setLineWidth(0.4);
+    doc.line(15, 54, 18.4, 54);
+    doc.arc(16.7, 54.5, 1.7, Math.PI, 2 * Math.PI); // Hombros
+    doc.text(`Operador de Caja: ${ingreso.usuario.toUpperCase()}`, 20, 53.5);
 
     // Línea divisoria
     doc.setDrawColor(226, 232, 240);
@@ -180,32 +253,29 @@ const ReceiptManager = {
     doc.line(15, 57, 195, 57);
 
     // 4. Datos del Socio / Pagador
-    doc.setTextColor(11, 18, 34);
+    doc.setTextColor(11, 31, 58);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
+    doc.setFontSize(11);
     doc.text("DATOS DEL SOCIO / DEPOSITANTE", 15, 65);
 
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
+    doc.setFontSize(9.5);
+    doc.setTextColor(100, 116, 139);
     doc.text(`Nombre Completo:`, 15, 73);
-    doc.setFont("helvetica", "bold");
-    doc.text(`${socioNombre}`, 50, 73);
-
-    doc.setFont("helvetica", "normal");
-    doc.text(`Documento de Identidad:`, 15, 79);
-    doc.setFont("helvetica", "bold");
-    doc.text(`${socioDoc}`, 60, 79);
-
-    doc.setFont("helvetica", "normal");
+    doc.text(`Documento / RUC:`, 15, 79);
     doc.text(`Número de Socio:`, 15, 85);
+    
     doc.setFont("helvetica", "bold");
+    doc.setTextColor(11, 31, 58);
+    doc.text(`${socioNombre}`, 50, 73);
+    doc.text(`${socioDoc}`, 50, 79);
     doc.text(`${socioNro}`, 50, 85);
 
-    // 5. Tabla de Transacción (Diseño Corporativo)
-    doc.setFillColor(241, 245, 249);
+    // 5. Tabla de Transacción (Diseño Azul Marino Moderno)
+    doc.setFillColor(11, 31, 58);
     doc.rect(15, 95, 180, 10, "F");
     
-    doc.setTextColor(71, 85, 105);
+    doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.text("CONCEPTO / DETALLE DE PAGO", 20, 101);
@@ -215,33 +285,37 @@ const ReceiptManager = {
     // Cuerpo de la tabla
     doc.setTextColor(15, 23, 42);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
+    doc.setFontSize(9.5);
     doc.text(`${ingreso.concepto}`, 20, 113);
-    doc.text(`${ingreso.metodoPago}`, 130, 113);
+    doc.text(`${metodoPagoClean}`, 130, 113);
     
     doc.setFont("helvetica", "bold");
     doc.text(`${formatCurrency(ingreso.monto)}`, 165, 113);
 
     // Línea final de tabla
+    doc.setDrawColor(197, 168, 128); // Dorado
+    doc.setLineWidth(0.4);
     doc.line(15, 120, 195, 120);
 
-    // Total General Box
-    doc.setFillColor(241, 245, 249);
-    doc.roundedRect(125, 126, 70, 15, 1, 1, "F");
+    // Total General Box (Fondo suave con borde dorado)
+    doc.setFillColor(248, 249, 250);
+    doc.setDrawColor(197, 168, 128);
+    doc.setLineWidth(0.4);
+    doc.roundedRect(125, 126, 70, 15, 2, 2, "FD");
 
-    doc.setTextColor(11, 18, 34);
+    doc.setTextColor(11, 31, 58);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
+    doc.setFontSize(10);
     doc.text("TOTAL ABONADO:", 129, 135);
     doc.setTextColor(16, 185, 129); // Verde éxito
-    doc.setFontSize(13);
-    doc.text(`${formatCurrency(ingreso.monto)}`, 165, 135);
+    doc.setFontSize(12.5);
+    doc.text(`${formatCurrency(ingreso.monto)}`, 163, 135);
 
     // 6. Mensaje de Agradecimiento e Información Legal
     doc.setTextColor(100, 116, 139);
     doc.setFont("helvetica", "italic");
     doc.setFontSize(8.5);
-    doc.text("Este comprobante constituye un recibo oficial de cobro emitido por la administración digital de CLUB NACIONAL SDG.", 15, 160);
+    doc.text("Este comprobante constituye un recibo oficial de cobro emitido por la administración digital de Club Nacional SDG.", 15, 160);
     doc.text("Gracias por su aporte y su puntualidad en las cuotas sociales, haciendo crecer nuestro club.", 15, 164);
 
     // 7. Firmas y Sello de Validación
@@ -269,6 +343,17 @@ const ReceiptManager = {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.5);
     doc.text("Firma del Responsable / Tesorero", 137, 193);
+
+    // 8. Pie de página profesional e institucional
+    doc.setDrawColor(197, 168, 128); // Dorado
+    doc.setLineWidth(0.4);
+    doc.line(15, 212, 195, 212);
+    
+    doc.setTextColor(100, 116, 139);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
+    doc.text("CLUB NACIONAL SDG • Saltos del Guairá, Canindeyú, Paraguay • Fundado el 02/02/1975", 15, 217);
+    doc.text("RUC: 800234190-2 • Teléfono: +595 982 123 456 • Correo: contacto@clubnacional.org.py", 15, 221);
 
     // Guardar / Descargar PDF con fallback robusto
     try {
@@ -308,7 +393,7 @@ const ReceiptManager = {
 
     const formatCurrency = (val) => {
       const formatted = new Intl.NumberFormat("es-PY", { minimumFractionDigits: 0 }).format(val);
-      return `₲ ${formatted}`;
+      return `Gs. ${formatted}`;
     };
 
     const logoImg = await this.loadLogo();
