@@ -18,7 +18,7 @@ const ReceiptManager = {
           resolved = true;
           resolve(null);
         }
-      }, 300); // 300ms safety timeout
+      }, 3000); // 3000ms safety timeout
       
       img.onload = () => {
         if (!resolved) {
@@ -75,7 +75,7 @@ const ReceiptManager = {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8.5);
     doc.text("BALANCE GENERAL Y ESTADO DE CUENTAS INSTITUCIONALES", 44, 20);
-    doc.text("Saltos del Guairá, Paraguay • Gestión Deportiva y Social", 44, 25);
+    doc.text("Asunción, Paraguay • Gestión Deportiva y Social", 44, 25);
 
     // 2. Pie de página en cada página
     doc.setDrawColor(226, 232, 240);
@@ -152,7 +152,7 @@ const ReceiptManager = {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.text("ADMINISTRACIÓN Y CONTABILIDAD DEPORTIVA", 44, 22);
-    doc.text("Saltos del Guairá, Paraguay", 44, 27);
+    doc.text("Asunción, Paraguay", 44, 27);
     
     // Cuadro del Recibo Nº
     doc.setFillColor(255, 255, 255);
