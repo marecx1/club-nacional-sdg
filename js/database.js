@@ -239,7 +239,15 @@ const DB = {
         const batch = fbDB.batch();
         (Array.isArray(data) ? data : []).forEach(item => {
           const ref = fbDB.collection(key).doc(String(item.id));
-          batch.set(ref, item, { merge: true });
+          
+          // Clonar para evitar mutación y limpiar fotos excesivamente grandes
+          const docData = { ...item };
+          if (docData.foto && docData.foto.length > 1000000) {
+            console.warn(`La propiedad 'foto' en ${key} (ID: ${item.id}) excede el límite de Firestore. Sincronizando sin foto.`);
+            docData.foto = "";
+          }
+          
+          batch.set(ref, docData, { merge: true });
         });
         await batch.commit();
       } else if (key === "caja") {

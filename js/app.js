@@ -359,7 +359,7 @@ const App = {
       });
     }
 
-    // 8. Lector de archivos de imagen para foto de socio
+    // 8. Lector de archivos de imagen para foto de socio con compresión automática
     const socioFotoFile = document.getElementById("socio-foto-file");
     if (socioFotoFile) {
       socioFotoFile.addEventListener("change", (e) => {
@@ -367,8 +367,38 @@ const App = {
         if (file) {
           const reader = new FileReader();
           reader.onload = (event) => {
-            document.getElementById("socio-foto").value = event.target.result;
-            document.getElementById("socio-foto-preview").src = event.target.result;
+            const img = new Image();
+            img.onload = () => {
+              // Dimensiones máximas recomendadas para foto de perfil
+              const maxDim = 300;
+              let width = img.width;
+              let height = img.height;
+              
+              if (width > height) {
+                if (width > maxDim) {
+                  height = Math.round((height * maxDim) / width);
+                  width = maxDim;
+                }
+              } else {
+                if (height > maxDim) {
+                  width = Math.round((width * maxDim) / height);
+                  height = maxDim;
+                }
+              }
+              
+              const canvas = document.createElement("canvas");
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, width, height);
+              
+              // Exportar como JPEG comprimido al 75% (ocupa unos 15KB-30KB)
+              const compressedBase64 = canvas.toDataURL("image/jpeg", 0.75);
+              
+              document.getElementById("socio-foto").value = compressedBase64;
+              document.getElementById("socio-foto-preview").src = compressedBase64;
+            };
+            img.src = event.target.result;
           };
           reader.readAsDataURL(file);
         }
