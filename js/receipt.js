@@ -240,11 +240,8 @@ const ReceiptManager = {
 
     // Icono Usuario
     doc.setFillColor(11, 31, 58);
-    doc.ellipse(16.7, 51.7, 1, 1, "F"); // Cabeza
-    doc.setDrawColor(11, 31, 58);
-    doc.setLineWidth(0.4);
-    doc.line(15, 54, 18.4, 54);
-    doc.arc(16.7, 54.5, 1.7, Math.PI, 2 * Math.PI); // Hombros
+    doc.ellipse(16.7, 51.3, 1, 1, "F"); // Cabeza
+    doc.rect(15, 53, 3.4, 1.5, "F"); // Hombros
     doc.text(`Operador de Caja: ${ingreso.usuario.toUpperCase()}`, 20, 53.5);
 
     // Línea divisoria
